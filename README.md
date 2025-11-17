@@ -1,8 +1,18 @@
 # LifeLog: Mood • Sleep • Energy Tracker
 
+---
+### English
 This is the Android source code for the LifeLog application, a native Android app for tracking mood, energy, sleep, and more, as outlined in the technical specification.
 
-## How to Build
+---
+### Русский
+Это исходный код Android-приложения LifeLog — нативного приложения для отслеживания настроения, энергии, сна и других показателей в соответствии с техническим заданием.
+
+---
+
+## How to Build / Как собрать проект
+
+### English
 
 The project uses Gradle as its build system. You can build the project from the command line or using Android Studio.
 
@@ -19,7 +29,28 @@ The project uses Gradle as its build system. You can build the project from the 
 2.  Let Gradle sync complete.
 3.  Go to `Build > Make Project`.
 
-## How to Run
+### Русский
+
+Проект использует Gradle в качестве системы сборки. Вы можете собрать проект из командной строки или с помощью Android Studio.
+
+**Командная строка:**
+
+1.  Склонируйте репозиторий.
+2.  Перейдите в корневой каталог проекта.
+3.  Предоставьте права на выполнение для Gradle wrapper: `chmod +x gradlew`
+4.  Выполните команду сборки: `./gradlew build`
+
+**Android Studio:**
+
+1.  Откройте проект в Android Studio.
+2.  Дождитесь завершения синхронизации Gradle.
+3.  Перейдите в `Build > Make Project`.
+
+---
+
+## How to Run / Как запустить проект
+
+### English
 
 You can run the application on an Android emulator or a physical device directly from Android Studio.
 
@@ -27,7 +58,19 @@ You can run the application on an Android emulator or a physical device directly
 2.  Choose a target device.
 3.  Click the "Run" button.
 
-## Permissions
+### Русский
+
+Вы можете запустить приложение на эмуляторе Android или на физическом устройстве прямо из Android Studio.
+
+1.  Выберите конфигурацию запуска (обычно это модуль `:app`).
+2.  Выберите целевое устройство.
+3.  Нажмите кнопку "Run".
+
+---
+
+## Permissions / Разрешения
+
+### English
 
 The application requires the following permissions to function correctly:
 
@@ -37,7 +80,21 @@ The application requires the following permissions to function correctly:
 
 The app will request these permissions at runtime when you first access the relevant feature.
 
-## Test Plan
+### Русский
+
+Приложению для корректной работы требуются следующие разрешения:
+
+*   `android.permission.CAMERA`: для записи видеозаметок.
+*   `android.permission.RECORD_AUDIO`: для записи звука в видеозаметках.
+*   `android.permission.POST_NOTIFICATIONS` (на Android 13+): для отображения напоминаний о приеме лекарств.
+
+Приложение запросит эти разрешения во время выполнения при первом доступе к соответствующей функции.
+
+---
+
+## Test Plan / План тестирования
+
+### English
 
 The project includes a set of unit and instrumentation tests to ensure code quality and stability.
 
@@ -46,7 +103,20 @@ The project includes a set of unit and instrumentation tests to ensure code qual
 *   **Lint**: The project is configured with Lint to check for code style and potential errors. Run with `./gradlew lint`.
 *   **CI**: A GitHub Actions workflow is set up in `.github/workflows/android_ci.yml` to automatically build and test the project on every push.
 
-## Known Limitations (MVP)
+### Русский
+
+Проект включает набор юнит-тестов и инструментальных тестов для обеспечения качества и стабильности кода.
+
+*   **Юнит-тесты**: Расположены в `feature/*/src/test`. Эти тесты покрывают ViewModel и бизнес-логику. Запуск: `./gradlew test`.
+*   **UI-тесты (инструментальные)**: Расположены в `feature/*/src/androidTest`. Эти тесты проверяют UI-компоненты Compose. Запускаются из Android Studio или командой `./gradlew connectedAndroidTest`.
+*   **Lint**: Проект настроен с использованием Lint для проверки стиля кода и потенциальных ошибок. Запуск: `./gradlew lint`.
+*   **CI**: В `.github/workflows/android_ci.yml` настроен рабочий процесс GitHub Actions для автоматической сборки и тестирования проекта при каждом push-событии.
+
+---
+
+## Known Limitations (MVP) / Известные ограничения (MVP)
+
+### English
 
 This is an MVP implementation, and some features are simplified or not yet complete:
 
@@ -57,3 +127,15 @@ This is an MVP implementation, and some features are simplified or not yet compl
 *   **Data Export/Import**: This feature, mentioned in the technical specification, is not implemented in the MVP.
 *   **Error Handling**: Robust error handling (e.g., for file I/O, database errors) is minimal.
 *   **UI Polish**: The UI is functional but lacks the final polish and custom components described in the visual references. Emoji selection for mood is a placeholder.
+
+### Русский
+
+Это MVP-реализация, и некоторые функции упрощены или еще не завершены:
+
+*   **Воспроизведение видео**: Пользовательский интерфейс для воспроизведения записанных видеозаметок еще не реализован. Видео сохраняются, но их нельзя просмотреть в приложении.
+*   **Тренды**: Графики на экране "Тренды" очень простые и служат заглушкой для более продвинутой библиотеки диаграмм.
+*   **Напоминания о лекарствах**: Логика планирования упрощена для демонстрационных целей (например, срабатывает через 10 секунд после добавления лекарства). Она еще не учитывает реальное время суток.
+*   **Переключение языка**: Пользовательский интерфейс для переключения языков присутствует, но фактическое изменение локали в работающем приложении (пересоздание UI с новыми строками) не реализовано полностью.
+*   **Экспорт/импорт данных**: Эта функция, упомянутая в техническом задании, не реализована в MVP.
+*   **Обработка ошибок**: Надежная обработка ошибок (например, для файлового ввода-вывода, ошибок базы данных) минимальна.
+*   **Полировка UI**: Пользовательский интерфейс функционален, но ему не хватает финальной полировки и кастомных компонентов, описанных в визуальных референсах. Выбор эмодзи для настроения является заглушкой.
