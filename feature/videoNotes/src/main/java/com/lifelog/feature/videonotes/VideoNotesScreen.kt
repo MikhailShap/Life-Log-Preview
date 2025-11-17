@@ -17,14 +17,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.VideoNote
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoNotesScreen(
-    viewModel: VideoNotesViewModel = hiltViewModel(),
-    onNavigateToRecord: () -> Unit
+    onAddVideo: () -> Unit,
+    viewModel: VideoNotesViewModel = hiltViewModel()
 ) {
     val videoNotes by viewModel.videoNotes.collectAsState()
 
@@ -33,17 +34,17 @@ fun VideoNotesScreen(
             TopAppBar(title = { Text("Video Notes") })
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToRecord) {
-                Icon(Icons.Default.Add, contentDescription = "Record Video Note")
+            FloatingActionButton(onClick = onAddVideo) {
+                Icon(Icons.Default.Add, contentDescription = "Add Video Note")
             }
         }
     ) { paddingValues ->
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 128.dp),
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.padding(paddingValues).padding(4.dp)
         ) {
             items(videoNotes) { videoNote ->
-                VideoNoteItem(videoNote)
+                VideoNoteItem(videoNote = videoNote)
             }
         }
     }
@@ -51,12 +52,15 @@ fun VideoNotesScreen(
 
 @Composable
 fun VideoNoteItem(videoNote: VideoNote) {
-    // Placeholder for video thumbnail
-    Text("Video from ${videoNote.createdAt}")
+    // For simplicity, just display the creation date
+    Text(
+        text = videoNote.createdAt.toString(),
+        modifier = Modifier.padding(8.dp)
+    )
 }
 
 @Preview
 @Composable
 fun VideoNotesScreenPreview() {
-    // Preview won't show much without a proper ViewModel
+    VideoNotesScreen(onAddVideo = {})
 }

@@ -34,6 +34,9 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-compiler:2.51.1")
 
+    // Gson
+    implementation("com.google.code.gson:gson:2.10.1")
+
     // Project dependencies
     implementation(project(":core:domain"))
 }

@@ -7,10 +7,10 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Videocam
@@ -20,12 +20,10 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -43,7 +41,6 @@ import com.lifelog.feature.today.TodayScreen
 import com.lifelog.feature.trends.TrendsScreen
 import com.lifelog.feature.videonotes.RecordVideoScreen
 import com.lifelog.feature.videonotes.VideoNotesScreen
-import com.lifelog.feature.videonotes.VideoNotesViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
@@ -53,7 +50,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
     object VideoNotes : Screen("video_notes", "Videos", Icons.Default.Videocam)
     object Meds : Screen("meds", "Meds", Icons.Default.Favorite)
     object Breathe : Screen("breathe", "Breathe", Icons.Default.WbSunny)
-    object Library : Screen("library", "Library", Icons.Default.MenuBook)
+    object Library : Screen("library", "Library", Icons.AutoMirrored.Filled.MenuBook)
     object Settings : Screen("settings", "Settings", Icons.Default.Settings)
 }
 
@@ -116,19 +113,13 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Log.route) { LogScreen() }
                         composable(Screen.Trends.route) { TrendsScreen() }
                         composable(Screen.VideoNotes.route) {
-                            val videoNotesViewModel: VideoNotesViewModel = hiltViewModel()
                             VideoNotesScreen(
-                                viewModel = videoNotesViewModel,
-                                onNavigateToRecord = { navController.navigate(recordVideoRoute) }
+                                onAddVideo = { navController.navigate(recordVideoRoute) }
                             )
                         }
                         composable(recordVideoRoute) {
-                             val videoNotesViewModel: VideoNotesViewModel = hiltViewModel(
-                                navController.getBackStackEntry(Screen.VideoNotes.route)
-                            )
                             RecordVideoScreen(
-                                onVideoSaved = { uri, duration ->
-                                    videoNotesViewModel.saveVideoNote(uri, duration)
+                                onVideoSaved = {
                                     navController.popBackStack()
                                 }
                             )

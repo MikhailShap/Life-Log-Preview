@@ -7,6 +7,7 @@ import com.lifelog.core.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -24,7 +25,7 @@ class SettingsViewModel @Inject constructor(
 
     val uiState: StateFlow<SettingsUiState> =
         settingsRepository.themeMode.map { themeMode ->
-            SettingsUiState(themeMode = themeMode, language = settingsRepository.language.replayCache.firstOrNull() ?: "en")
+            SettingsUiState(themeMode = themeMode, language = settingsRepository.language.first())
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

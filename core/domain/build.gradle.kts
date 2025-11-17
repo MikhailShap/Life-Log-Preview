@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id("org.jetbrains.kotlin.jvm")
 }
@@ -7,6 +9,10 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
 dependencies {
-    // Kotlin stdlib, Coroutines, Hilt
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
 }

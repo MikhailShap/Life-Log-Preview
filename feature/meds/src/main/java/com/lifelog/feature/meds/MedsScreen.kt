@@ -95,7 +95,7 @@ fun AddMedDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) -> U
         title = { Text("Add Medication") },
         text = {
             Column {
-                TextField(value = name, onValue-Change = { name = it }, label = { Text("Name") })
+                TextField(value = name, onValueChange = { name = it }, label = { Text("Name") })
                 TextField(value = dosage, onValueChange = { dosage = it }, label = { Text("Dosage") })
                 TextField(value = timeOfDay, onValueChange = { timeOfDay = it }, label = { Text("Time of Day") })
             }

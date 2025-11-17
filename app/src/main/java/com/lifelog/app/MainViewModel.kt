@@ -7,8 +7,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    val settingsRepository: SettingsRepository
+    settingsRepository: SettingsRepository
 ) : ViewModel() {
     val themeMode = settingsRepository.themeMode
-    val language = settingsRepository.language
 }
