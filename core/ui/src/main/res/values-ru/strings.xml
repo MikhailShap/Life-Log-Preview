@@ -7,16 +7,48 @@
     <string name="nav_stats">Статистика</string>
     <string name="nav_profile">Профиль</string>
 
-    <!-- Today Screen -->
+    <!-- Today Screen (Sleep) -->
     <string name="sleep_log_title">Запись сна</string>
     <string name="sleep_start_time">Время отхода ко сну</string>
     <string name="sleep_end_time">Время пробуждения</string>
+    <string name="sleep_duration">Продолжительность сна</string>
     <string name="sleep_quality">Качество сна</string>
     <string name="save">Сохранить</string>
+    <string name="stats_title">Ваша статистика</string>
+    <string name="stats_week">Неделя</string>
+    <string name="stats_month">Месяц</string>
+    <string name="stats_chart_placeholder">График статистики</string>
+    <string name="stats_avg_duration">Средняя продолжительность</string>
+    <string name="stats_avg_quality">Среднее качество</string>
+    <string name="quality_good">Хорошо</string>
+    
+    <!-- Today Screen (Date) -->
+    <string name="date_today_format">Сегодня, %s</string>
+
+    <!-- Log Screen (Mood) -->
+    <string name="mood_title">Как вы себя\nчувствуете?</string>
+    <string name="my_mood">Мое настроение</string>
+    <string name="mood_awful">Ужасно</string>
+    <string name="mood_bad">Плохо</string>
+    <string name="mood_meh">Нормально</string>
+    <string name="mood_good">Хорошо</string>
+    <string name="mood_rad">Отлично</string>
+    <string name="my_indicators">Мои показатели</string>
+    <string name="energy">Энергия</string>
+    <string name="stress">Стресс</string>
+    <string name="my_notes">Мои заметки</string>
+    <string name="notes_placeholder">Что у вас на уме? Что повлияло на ваше настроение?</string>
+    <string name="video_note">Видеозаметка</string>
+    <string name="add_short_video">Добавьте короткое видео</string>
+    <string name="save_entry">Сохранить запись</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Настройки</string>
     <string name="language">Язык</string>
     <string name="english">Английский</string>
     <string name="russian">Русский</string>
+    <string name="theme">Тема</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Темная</string>
+    <string name="theme_system">Системная</string>
 </resources>

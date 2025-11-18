@@ -8,32 +8,32 @@ import androidx.work.WorkManager
 import com.lifelog.core.domain.model.Med
 import java.util.concurrent.TimeUnit
 
-class ReminderManager(context: Context) {
+object ReminderManager {
 
-    private val workManager = WorkManager.getInstance(context)
-
-    fun scheduleReminder(med: Med) {
-        // This is a simplified scheduling logic.
-        // A real implementation would parse med.timeOfDay to calculate the initial delay.
-        val initialDelay = 10L // seconds for testing
-
-        val data = Data.Builder()
-            .putString(MedicationReminderWorker.MED_NAME_KEY, med.name)
+    fun startReminder(context: Context, med: Med) {
+        val workManager = WorkManager.getInstance(context)
+        val inputData = Data.Builder()
+            .putString("medName", med.name)
             .build()
 
-        val reminderWorkRequest = OneTimeWorkRequestBuilder<MedicationReminderWorker>()
-            .setInitialDelay(initialDelay, TimeUnit.SECONDS)
-            .setInputData(data)
+        val workRequest = OneTimeWorkRequestBuilder<MedicationReminderWorker>()
+            .setInitialDelay(calculateInitialDelay(med.timeOfDay), TimeUnit.MILLISECONDS)
+            .setInputData(inputData)
             .build()
 
         workManager.enqueueUniqueWork(
-            med.name, // Use med name as unique work name
+            "med_reminder_${med.id}",
             ExistingWorkPolicy.REPLACE,
-            reminderWorkRequest
+            workRequest
         )
     }
 
-    fun cancelReminder(med: Med) {
-        workManager.cancelUniqueWork(med.name)
+    fun cancelReminder(context: Context, med: Med) {
+        WorkManager.getInstance(context).cancelUniqueWork("med_reminder_${med.id}")
+    }
+
+    private fun calculateInitialDelay(timeOfDay: String): Long {
+        // TODO: Implement proper time calculation
+        return 10_000 // 10 seconds for testing
     }
 }

@@ -4,38 +4,31 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lifelog.core.domain.model.Med
 import com.lifelog.core.domain.repository.MedRepository
-import com.lifelog.feature.meds.reminders.ReminderManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MedsViewModel @Inject constructor(
-    private val medRepository: MedRepository,
-    private val reminderManager: ReminderManager
+    private val medRepository: MedRepository
 ) : ViewModel() {
 
-    val meds = medRepository.getAllMeds()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    val meds: StateFlow<List<Med>> = medRepository.getAllMeds()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    fun saveMed(name: String, dosage: String, timeOfDay: String) {
+    fun saveMed(name: String, dosage: String, time: String) {
         viewModelScope.launch {
-            val med = Med(name = name, dosage = dosage, timeOfDay = timeOfDay)
+            val med = Med(name = name, dosage = dosage, timeOfDay = time)
             medRepository.saveMed(med)
-            reminderManager.scheduleReminder(med)
         }
     }
 
     fun deleteMed(med: Med) {
         viewModelScope.launch {
             medRepository.deleteMedById(med.id)
-            reminderManager.cancelReminder(med)
         }
     }
 }

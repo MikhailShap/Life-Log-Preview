@@ -19,34 +19,30 @@ private val DarkColorScheme = darkColorScheme(
     primary = Primary,
     background = BackgroundDark,
     surface = SurfaceDark,
-    onPrimary = TextDarkPrimary,
-    onBackground = TextDarkPrimary,
-    onSurface = TextDarkPrimary,
+    onPrimary = BackgroundDark, // Текст на кнопке должен быть темным
+    onBackground = TextPrimary,
+    onSurface = TextPrimary,
+    secondary = AccentPurple
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Primary,
     background = BackgroundLight,
     surface = SurfaceLight,
-    onPrimary = TextLightPrimary,
-    onBackground = TextLightPrimary,
-    onSurface = TextLightPrimary,
+    onPrimary = TextPrimary,
+    onBackground = TextLight,
+    onSurface = TextLight,
+    secondary = AccentPurple
 )
 
 @Composable
 fun LifeLogAppTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    darkTheme: Boolean = true, // Force dark theme by default for this design
+    dynamicColor: Boolean = false, // Disable dynamic color to stick to the design
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {

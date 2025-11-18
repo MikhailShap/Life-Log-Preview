@@ -16,9 +16,12 @@ import javax.inject.Inject
 private const val TAG = "TodayViewModel"
 
 data class TodayUiState(
-    val sleepQuality: Int = 3, // 1-5 scale
+    val sleepQuality: Int = 3, // 1-5
     val sleepStartTime: String = "23:00",
     val sleepEndTime: String = "07:00",
+    val mood: Float = 5f, // Keep old fields just in case, or remove if not needed
+    val anxiety: Float = 0.5f,
+    val notes: String = ""
 )
 
 @HiltViewModel
@@ -45,8 +48,34 @@ class TodayViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(sleepEndTime = time)
     }
 
+    // Keep old methods if needed or refactor them
+    fun onMoodChange(mood: Float) {
+        _uiState.value = _uiState.value.copy(mood = mood)
+    }
+
+    fun onNotesChange(notes: String) {
+        _uiState.value = _uiState.value.copy(notes = notes)
+    }
+    
+    fun onAnxietyChange(anxiety: Float) {
+        _uiState.value = _uiState.value.copy(anxiety = anxiety)
+    }
+
     fun saveEntry() {
-        Log.d(TAG, "saveEntry called")
-        // Logic to save sleep entry will be implemented here
+        viewModelScope.launch {
+            // TODO: Map new UI state to Entry model correctly
+            val currentState = _uiState.value
+             val entry = Entry(
+                date = Date(),
+                mood = currentState.sleepQuality, // Temporary mapping
+                energy = 0, 
+                anxiety = 0, 
+                sleepHours = 8f, // Placeholder, calculate from times
+                notes = currentState.notes,
+                tags = emptyList(),
+                videoNoteIds = emptyList()
+            )
+            entryRepository.saveEntry(entry)
+        }
     }
 }

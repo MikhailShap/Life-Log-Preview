@@ -7,16 +7,48 @@
     <string name="nav_stats">Stats</string>
     <string name="nav_profile">Profile</string>
 
-    <!-- Today Screen -->
+    <!-- Today Screen (Sleep) -->
     <string name="sleep_log_title">Sleep Log</string>
     <string name="sleep_start_time">Sleep Start Time</string>
     <string name="sleep_end_time">Wake Up Time</string>
+    <string name="sleep_duration">Sleep Duration</string>
     <string name="sleep_quality">Sleep Quality</string>
     <string name="save">Save</string>
+    <string name="stats_title">Your Statistics</string>
+    <string name="stats_week">Week</string>
+    <string name="stats_month">Month</string>
+    <string name="stats_chart_placeholder">Stats Chart</string>
+    <string name="stats_avg_duration">Avg Duration</string>
+    <string name="stats_avg_quality">Avg Quality</string>
+    <string name="quality_good">Good</string>
+    
+    <!-- Today Screen (Date) -->
+    <string name="date_today_format">Today, %s</string>
+
+    <!-- Log Screen (Mood) -->
+    <string name="mood_title">How are you feeling?</string>
+    <string name="my_mood">My Mood</string>
+    <string name="mood_awful">Awful</string>
+    <string name="mood_bad">Bad</string>
+    <string name="mood_meh">Meh</string>
+    <string name="mood_good">Good</string>
+    <string name="mood_rad">Rad</string>
+    <string name="my_indicators">My Indicators</string>
+    <string name="energy">Energy</string>
+    <string name="stress">Stress</string>
+    <string name="my_notes">My Notes</string>
+    <string name="notes_placeholder">What\'s on your mind? What affected your mood?</string>
+    <string name="video_note">Video Note</string>
+    <string name="add_short_video">Add a short video</string>
+    <string name="save_entry">Save Entry</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
     <string name="language">Language</string>
     <string name="english">English</string>
     <string name="russian">Russian</string>
+    <string name="theme">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System</string>
 </resources>
