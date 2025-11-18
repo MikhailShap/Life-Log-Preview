@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">LifeLog</string>
+
+    <!-- Navigation -->
+    <string name="nav_sleep">Sleep</string>
+    <string name="nav_mood">Mood</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Today Screen -->
+    <string name="sleep_log_title">Sleep Log</string>
+    <string name="sleep_start_time">Sleep Start Time</string>
+    <string name="sleep_end_time">Wake Up Time</string>
+    <string name="sleep_quality">Sleep Quality</string>
+    <string name="save">Save</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="language">Language</string>
+    <string name="english">English</string>
+    <string name="russian">Russian</string>
+</resources>

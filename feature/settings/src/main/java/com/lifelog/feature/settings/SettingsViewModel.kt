@@ -1,5 +1,6 @@
 package com.lifelog.feature.settings
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lifelog.core.domain.model.ThemeMode
@@ -7,11 +8,12 @@ import com.lifelog.core.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val TAG = "SettingsViewModel"
 
 data class SettingsUiState(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
@@ -24,8 +26,9 @@ class SettingsViewModel @Inject constructor(
 ) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> =
-        settingsRepository.themeMode.map { themeMode ->
-            SettingsUiState(themeMode = themeMode, language = settingsRepository.language.first())
+        combine(settingsRepository.themeMode, settingsRepository.language) { theme, lang ->
+            Log.d(TAG, "uiState updated: theme=$theme, lang=$lang")
+            SettingsUiState(themeMode = theme, language = lang)
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -34,12 +37,14 @@ class SettingsViewModel @Inject constructor(
 
     fun setThemeMode(themeMode: ThemeMode) {
         viewModelScope.launch {
+            Log.d(TAG, "setThemeMode called with: $themeMode")
             settingsRepository.setThemeMode(themeMode)
         }
     }
 
     fun setLanguage(language: String) {
         viewModelScope.launch {
+            Log.d(TAG, "setLanguage called with: $language")
             settingsRepository.setLanguage(language)
         }
     }

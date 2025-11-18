@@ -10,4 +10,5 @@ class MainViewModel @Inject constructor(
     settingsRepository: SettingsRepository
 ) : ViewModel() {
     val themeMode = settingsRepository.themeMode
+    val language = settingsRepository.language
 }

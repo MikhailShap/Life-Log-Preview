@@ -8,8 +8,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.lifelog.core.ui.R
 
 private const val TAG = "TodayScreen"
 
@@ -23,7 +25,7 @@ fun TodayScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Запись сна") })
+            TopAppBar(title = { Text(stringResource(id = R.string.sleep_log_title)) })
         }
     ) { paddingValues ->
         Column(
@@ -43,18 +45,18 @@ fun TodayScreen(
                         OutlinedTextField(
                             value = uiState.sleepStartTime,
                             onValueChange = { viewModel.onSleepStartTimeChange(it) },
-                            label = { Text("Время отхода ко сну") }
+                            label = { Text(stringResource(id = R.string.sleep_start_time)) }
                         )
                         OutlinedTextField(
                             value = uiState.sleepEndTime,
                             onValueChange = { viewModel.onSleepEndTimeChange(it) },
-                            label = { Text("Время пробуждения") }
+                            label = { Text(stringResource(id = R.string.sleep_end_time)) }
                         )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Text("Качество сна")
+                    Text(stringResource(id = R.string.sleep_quality))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
@@ -85,7 +87,7 @@ fun TodayScreen(
                 onClick = { viewModel.saveEntry() },
                 modifier = Modifier.fillMaxWidth().height(56.dp)
             ) {
-                Text("Сохранить", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(id = R.string.save), style = MaterialTheme.typography.titleMedium)
             }
         }
     }

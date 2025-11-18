@@ -1,24 +1,25 @@
 package com.lifelog.app
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.core.os.LocaleListCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -30,14 +31,19 @@ import com.lifelog.core.ui.theme.LifeLogAppTheme
 import com.lifelog.feature.settings.SettingsScreen
 import com.lifelog.feature.today.TodayScreen
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import com.lifelog.core.ui.R
+import java.util.Locale
 
 private const val TAG = "MainActivity"
 
-sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
-    object Sleep : Screen("sleep", "Сон", Icons.Default.Bedtime)
-    object Mood : Screen("mood", "Настроение", Icons.Default.SentimentSatisfied)
-    object Stats : Screen("stats", "Статистика", Icons.Default.BarChart)
-    object Profile : Screen("profile", "Профиль", Icons.Default.Person)
+sealed class Screen(val route: String, val label: Int, val icon: ImageVector) {
+    object Sleep : Screen("sleep", R.string.nav_sleep, Icons.Default.Bedtime)
+    object Mood : Screen("mood", R.string.nav_mood, Icons.Default.SentimentSatisfied)
+    object Stats : Screen("stats", R.string.nav_stats, Icons.Default.BarChart)
+    object Profile : Screen("profile", R.string.nav_profile, Icons.Default.Person)
 }
 
 val items = listOf(
@@ -51,13 +57,22 @@ val items = listOf(
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
-
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate: Activity starting")
         super.onCreate(savedInstanceState)
+        
+        viewModel.language.onEach { lang ->
+            val appLocale = LocaleListCompat.forLanguageTags(lang)
+            if (AppCompatDelegate.getApplicationLocales() != appLocale) {
+                AppCompatDelegate.setApplicationLocales(appLocale)
+                recreate()
+            }
+        }.launchIn(lifecycleScope)
+
         setContent {
-            Log.d(TAG, "setContent: Composable content being set")
             val themeMode by viewModel.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
+            
             val darkTheme = when (themeMode) {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
@@ -66,7 +81,6 @@ class MainActivity : ComponentActivity() {
 
             LifeLogAppTheme(darkTheme = darkTheme) {
                 val navController = rememberNavController()
-                Log.d(TAG, "onCreate: NavController created")
                 Scaffold(
                     bottomBar = {
                         NavigationBar {
@@ -75,10 +89,9 @@ class MainActivity : ComponentActivity() {
                             items.forEach { screen ->
                                 NavigationBarItem(
                                     icon = { Icon(screen.icon, contentDescription = null) },
-                                    label = { Text(screen.label) },
+                                    label = { Text(stringResource(screen.label)) },
                                     selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                                     onClick = {
-                                        Log.d(TAG, "Navigation: Navigating to ${screen.route}")
                                         navController.navigate(screen.route) {
                                             popUpTo(navController.graph.findStartDestination().id) {
                                                 saveState = true
@@ -94,8 +107,8 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavHost(navController, startDestination = Screen.Sleep.route, Modifier.padding(innerPadding)) {
                         composable(Screen.Sleep.route) { TodayScreen() }
-                        composable(Screen.Mood.route) { Text("Mood Screen") } // Placeholder
-                        composable(Screen.Stats.route) { Text("Stats Screen") } // Placeholder
+                        composable(Screen.Mood.route) { Text("Mood Screen") }
+                        composable(Screen.Stats.route) { Text("Stats Screen") }
                         composable(Screen.Profile.route) { SettingsScreen() }
                     }
                 }
