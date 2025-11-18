@@ -1,119 +1,153 @@
 package com.lifelog.app
 
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.Article
+import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.MovieCreation
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Today
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.core.os.LocaleListCompat
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.lifelog.core.domain.model.ThemeMode
 import com.lifelog.core.ui.theme.LifeLogAppTheme
+import com.lifelog.feature.breathe.BreatheScreen
+import com.lifelog.feature.library.LibraryScreen
+import com.lifelog.feature.log.LogScreen
+import com.lifelog.feature.meds.MedsScreen
 import com.lifelog.feature.settings.SettingsScreen
 import com.lifelog.feature.today.TodayScreen
+import com.lifelog.feature.trends.TrendsScreen
+import com.lifelog.feature.videonotes.VideoNotesScreen
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import com.lifelog.core.ui.R
-import java.util.Locale
-
-private const val TAG = "MainActivity"
-
-sealed class Screen(val route: String, val label: Int, val icon: ImageVector) {
-    object Sleep : Screen("sleep", R.string.nav_sleep, Icons.Default.Bedtime)
-    object Mood : Screen("mood", R.string.nav_mood, Icons.Default.SentimentSatisfied)
-    object Stats : Screen("stats", R.string.nav_stats, Icons.Default.BarChart)
-    object Profile : Screen("profile", R.string.nav_profile, Icons.Default.Person)
-}
-
-val items = listOf(
-    Screen.Sleep,
-    Screen.Mood,
-    Screen.Stats,
-    Screen.Profile,
-)
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    private val viewModel: MainViewModel by viewModels()
-    
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d(TAG, "onCreate: Activity starting")
         super.onCreate(savedInstanceState)
-        
-        viewModel.language.onEach { lang ->
-            val appLocale = LocaleListCompat.forLanguageTags(lang)
-            if (AppCompatDelegate.getApplicationLocales() != appLocale) {
-                AppCompatDelegate.setApplicationLocales(appLocale)
-                recreate()
-            }
-        }.launchIn(lifecycleScope)
-
         setContent {
-            val themeMode by viewModel.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
-            
-            val darkTheme = when (themeMode) {
-                ThemeMode.LIGHT -> false
-                ThemeMode.DARK -> true
-                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+            LifeLogAppTheme {
+                LifeLogApp()
             }
+        }
+    }
+}
 
-            LifeLogAppTheme(darkTheme = darkTheme) {
-                val navController = rememberNavController()
-                Scaffold(
-                    bottomBar = {
-                        NavigationBar {
-                            val navBackStackEntry by navController.currentBackStackEntryAsState()
-                            val currentDestination = navBackStackEntry?.destination
-                            items.forEach { screen ->
-                                NavigationBarItem(
-                                    icon = { Icon(screen.icon, contentDescription = null) },
-                                    label = { Text(stringResource(screen.label)) },
-                                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                                    onClick = {
-                                        navController.navigate(screen.route) {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                    }
-                ) { innerPadding ->
-                    NavHost(navController, startDestination = Screen.Sleep.route, Modifier.padding(innerPadding)) {
-                        composable(Screen.Sleep.route) { TodayScreen() }
-                        composable(Screen.Mood.route) { Text("Mood Screen") }
-                        composable(Screen.Stats.route) { Text("Stats Screen") }
-                        composable(Screen.Profile.route) { SettingsScreen() }
-                    }
+private data class BottomNavItem(
+    val route: String,
+    val label: String,
+    val icon: @Composable () -> Unit
+)
+
+@Composable
+private fun LifeLogApp() {
+    val navController = rememberNavController()
+    val items = listOf(
+        BottomNavItem(
+            route = "today",
+            label = "Today",
+            icon = { Icon(Icons.Outlined.Today, contentDescription = "Today") }
+        ),
+        BottomNavItem(
+            route = "log",
+            label = "Log",
+            icon = { Icon(Icons.Outlined.CalendarMonth, contentDescription = "Log") }
+        ),
+        BottomNavItem(
+            route = "trends",
+            label = "Trends",
+            icon = { Icon(Icons.Outlined.BarChart, contentDescription = "Trends") }
+        ),
+        BottomNavItem(
+            route = "meds",
+            label = "Meds",
+            icon = { Icon(Icons.Outlined.FavoriteBorder, contentDescription = "Meds") }
+        ),
+        BottomNavItem(
+            route = "videos",
+            label = "Videos",
+            icon = { Icon(Icons.Outlined.MovieCreation, contentDescription = "Video Notes") }
+        ),
+        BottomNavItem(
+            route = "breathe",
+            label = "Breathe",
+            icon = { Icon(Icons.Outlined.Bolt, contentDescription = "Breathe") }
+        ),
+        BottomNavItem(
+            route = "library",
+            label = "Library",
+            icon = { Icon(Icons.Outlined.Article, contentDescription = "Library") }
+        ),
+        BottomNavItem(
+            route = "settings",
+            label = "Settings",
+            icon = { Icon(Icons.Outlined.Settings, contentDescription = "Settings") }
+        )
+    )
+
+    Scaffold(
+        bottomBar = {
+            BottomNavigationBar(
+                items = items,
+                currentDestination = navController.currentBackStackEntryAsState().value?.destination
+            ) { selected ->
+                navController.navigate(selected.route) {
+                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
                 }
             }
         }
-        Log.d(TAG, "onCreate: Activity creation finished")
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = items.first().route,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable("today") { TodayScreen() }
+            composable("log") { LogScreen() }
+            composable("trends") { TrendsScreen() }
+            composable("meds") { MedsScreen() }
+            composable("videos") { VideoNotesScreen() }
+            composable("breathe") { BreatheScreen() }
+            composable("library") { LibraryScreen() }
+            composable("settings") { SettingsScreen() }
+        }
+    }
+}
+
+@Composable
+private fun BottomNavigationBar(
+    items: List<BottomNavItem>,
+    currentDestination: NavDestination?,
+    onItemSelected: (BottomNavItem) -> Unit
+) {
+    NavigationBar {
+        val currentRoute = currentDestination?.route
+        items.forEach { item ->
+            NavigationBarItem(
+                selected = currentRoute == item.route,
+                onClick = { onItemSelected(item) },
+                icon = { item.icon() },
+                label = { Text(item.label) }
+            )
+        }
     }
 }
