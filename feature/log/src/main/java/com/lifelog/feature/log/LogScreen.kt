@@ -1,7 +1,11 @@
 package com.lifelog.feature.log
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -16,7 +20,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -37,7 +46,12 @@ fun LogScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
-    val date = SimpleDateFormat("d MMMM", Locale.getDefault()).format(Date())
+    
+    // Fix date format to respect locale
+    val currentLocale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val date = remember(currentLocale) {
+        SimpleDateFormat("d MMMM", currentLocale).format(Date())
+    }
 
     Scaffold(
         topBar = {
@@ -119,6 +133,12 @@ fun LogScreen(
                     label = stringResource(id = R.string.stress),
                     value = uiState.stress,
                     onValueChange = { viewModel.onStressChange(it) }
+                )
+
+                SliderGroup(
+                    label = stringResource(id = R.string.libido),
+                    value = uiState.libido,
+                    onValueChange = { viewModel.onLibidoChange(it) }
                 )
             }
 
@@ -223,33 +243,63 @@ fun LogScreen(
 
 @Composable
 fun MoodItem(icon: ImageVector, label: String, isSelected: Boolean, onClick: () -> Unit) {
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1.2f else 1.0f,
+        animationSpec = tween(durationMillis = 300),
+        label = "scale"
+    )
+
+    val containerColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surface,
+        animationSpec = tween(durationMillis = 300),
+        label = "containerColor"
+    )
+    
+    val gradientColors = listOf(Color(0xFF42A5F5), Color(0xFF26C6DA))
+    val unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable(onClick = onClick)
+        modifier = Modifier
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            )
     ) {
-        val containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surface
-        val iconColor = if (isSelected) Color.Yellow else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f) // Yellow for selected mood
-        val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
-
         Box(
             modifier = Modifier
                 .size(56.dp)
+                .scale(scale)
                 .clip(CircleShape)
-                .background(containerColor)
-                .run {
-                    if (isSelected) {
-                        // Simulate border for selected state
-                        background(containerColor).then(Modifier) // Simplified border logic
-                    } else this
-                },
+                .background(containerColor),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconColor,
-                modifier = Modifier.size(32.dp)
-            )
+            if (isSelected) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .graphicsLayer(alpha = 0.99f)
+                        .drawWithCache {
+                            onDrawWithContent {
+                                drawContent()
+                                drawRect(
+                                    brush = Brush.linearGradient(gradientColors),
+                                    blendMode = BlendMode.SrcIn
+                                )
+                            }
+                        }
+                )
+            } else {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = unselectedColor,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
