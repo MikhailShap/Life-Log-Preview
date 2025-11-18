@@ -1,89 +1,93 @@
 package com.lifelog.feature.today
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import android.util.Log
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.lifelog.core.ui.theme.LifeLogAppTheme
+
+private const val TAG = "TodayScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodayScreen(
     viewModel: TodayViewModel = hiltViewModel()
 ) {
+    Log.d(TAG, "TodayScreen composable executing")
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("How are you feeling?") })
+            TopAppBar(title = { Text("Запись сна") })
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(16.dp)
-                .fillMaxSize()
         ) {
-            Text("My mood", style = MaterialTheme.typography.titleMedium)
-            // Placeholder for emoji selector
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("My indicators", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Energy")
-            Slider(value = uiState.energy, onValueChange = viewModel::onEnergyChange)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Stress")
-            Slider(value = uiState.anxiety, onValueChange = viewModel::onAnxietyChange)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("My notes", style = MaterialTheme.typography.titleMedium)
-            OutlinedTextField(
-                value = uiState.notes,
-                onValueChange = viewModel::onNotesChange,
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("What's on your mind?") }
-            )
+                shape = MaterialTheme.shapes.large
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        OutlinedTextField(
+                            value = uiState.sleepStartTime,
+                            onValueChange = { viewModel.onSleepStartTimeChange(it) },
+                            label = { Text("Время отхода ко сну") }
+                        )
+                        OutlinedTextField(
+                            value = uiState.sleepEndTime,
+                            onValueChange = { viewModel.onSleepEndTimeChange(it) },
+                            label = { Text("Время пробуждения") }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text("Качество сна")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        val qualityIcons = listOf(
+                            Icons.Filled.SentimentVeryDissatisfied,
+                            Icons.Filled.SentimentDissatisfied,
+                            Icons.Filled.SentimentNeutral,
+                            Icons.Filled.SentimentSatisfied,
+                            Icons.Filled.SentimentVerySatisfied
+                        )
+                        qualityIcons.forEachIndexed { index, icon ->
+                            IconButton(onClick = { viewModel.onSleepQualityChange(index + 1) }) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    tint = if (uiState.sleepQuality == index + 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
-            // Placeholder for video note button
 
-            Spacer(modifier = Modifier.weight(1f))
             Button(
-                onClick = viewModel::saveEntry,
-                modifier = Modifier.fillMaxWidth()
+                onClick = { viewModel.saveEntry() },
+                modifier = Modifier.fillMaxWidth().height(56.dp)
             ) {
-                Text("Save Entry")
+                Text("Сохранить", style = MaterialTheme.typography.titleMedium)
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun TodayScreenPreview() {
-    LifeLogAppTheme {
-        // This preview won't work with the ViewModel out of the box.
-        // For a working preview, you'd typically pass a mock/fake ViewModel
-        // or hoist the state out of the screen Composable.
-        // For now, we'll rely on running in an emulator.
-    }
+    Log.d(TAG, "TodayScreen composable finished")
 }

@@ -1,5 +1,6 @@
 package com.lifelog.feature.today
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lifelog.core.domain.model.Entry
@@ -12,11 +13,12 @@ import kotlinx.coroutines.launch
 import java.util.Date
 import javax.inject.Inject
 
+private const val TAG = "TodayViewModel"
+
 data class TodayUiState(
-    val mood: Int = 3,
-    val energy: Float = 0.5f,
-    val anxiety: Float = 0.5f,
-    val notes: String = ""
+    val sleepQuality: Int = 3, // 1-5 scale
+    val sleepStartTime: String = "23:00",
+    val sleepEndTime: String = "07:00",
 )
 
 @HiltViewModel
@@ -27,36 +29,24 @@ class TodayViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TodayUiState())
     val uiState: StateFlow<TodayUiState> = _uiState.asStateFlow()
 
-    fun onMoodChange(mood: Int) {
-        _uiState.value = _uiState.value.copy(mood = mood)
+    init {
+        Log.d(TAG, "ViewModel initialized")
     }
 
-    fun onEnergyChange(energy: Float) {
-        _uiState.value = _uiState.value.copy(energy = energy)
+    fun onSleepQualityChange(quality: Int) {
+        _uiState.value = _uiState.value.copy(sleepQuality = quality)
     }
 
-    fun onAnxietyChange(anxiety: Float) {
-        _uiState.value = _uiState.value.copy(anxiety = anxiety)
+    fun onSleepStartTimeChange(time: String) {
+        _uiState.value = _uiState.value.copy(sleepStartTime = time)
     }
 
-    fun onNotesChange(notes: String) {
-        _uiState.value = _uiState.value.copy(notes = notes)
+    fun onSleepEndTimeChange(time: String) {
+        _uiState.value = _uiState.value.copy(sleepEndTime = time)
     }
 
     fun saveEntry() {
-        viewModelScope.launch {
-            val currentState = _uiState.value
-            val entry = Entry(
-                date = Date(),
-                mood = currentState.mood,
-                energy = (currentState.energy * 5).toInt(), // Scale to 0-5
-                anxiety = (currentState.anxiety * 5).toInt(), // Scale to 0-5
-                sleepHours = 0f, // Placeholder
-                notes = currentState.notes,
-                tags = emptyList(),
-                videoNoteIds = emptyList()
-            )
-            entryRepository.saveEntry(entry)
-        }
+        Log.d(TAG, "saveEntry called")
+        // Logic to save sleep entry will be implemented here
     }
 }
