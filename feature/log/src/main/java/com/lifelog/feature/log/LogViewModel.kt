@@ -16,6 +16,7 @@ data class LogUiState(
     val mood: Int = 3, // 1-5
     val energy: Float = 0.5f, // 0.0 - 1.0
     val stress: Float = 0.5f, // 0.0 - 1.0
+    val libido: Float = 0.5f, // 0.0 - 1.0
     val notes: String = ""
 )
 
@@ -39,6 +40,10 @@ class LogViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(stress = stress)
     }
 
+    fun onLibidoChange(libido: Float) {
+        _uiState.value = _uiState.value.copy(libido = libido)
+    }
+
     fun onNotesChange(notes: String) {
         _uiState.value = _uiState.value.copy(notes = notes)
     }
@@ -46,14 +51,15 @@ class LogViewModel @Inject constructor(
     fun saveEntry() {
         viewModelScope.launch {
             val currentState = _uiState.value
+            // Note: Entry model might need update to store libido, currently mapping to tags or ignoring
             val entry = Entry(
                 date = Date(),
                 mood = currentState.mood,
                 energy = (currentState.energy * 10).toInt(),
-                anxiety = (currentState.stress * 10).toInt(), // Using anxiety field for stress
+                anxiety = (currentState.stress * 10).toInt(),
                 sleepHours = 0f,
                 notes = currentState.notes,
-                tags = emptyList(),
+                tags = listOf("Libido: ${(currentState.libido * 10).toInt()}"), // Temporary storage
                 videoNoteIds = emptyList()
             )
             entryRepository.saveEntry(entry)
