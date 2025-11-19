@@ -1,7 +1,11 @@
 package com.lifelog.feature.today
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -22,7 +26,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -322,23 +331,60 @@ fun TimeInput(label: String, time: String, onTimeChange: (String) -> Unit) {
 
 @Composable
 fun QualityIcon(icon: ImageVector, isSelected: Boolean, onClick: () -> Unit) {
-    val tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-    val background = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1.2f else 1.0f,
+        animationSpec = tween(durationMillis = 300),
+        label = "scale"
+    )
+
+    val containerColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent,
+        animationSpec = tween(durationMillis = 300),
+        label = "containerColor"
+    )
+    
+    // Blue-Cyan gradient for selected state, grey for unselected
+    val gradientColors = listOf(Color(0xFF42A5F5), Color(0xFF26C6DA))
+    val unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
 
     Box(
         modifier = Modifier
             .size(48.dp)
+            .scale(scale)
             .clip(CircleShape)
-            .background(background)
-            .clickable(onClick = onClick),
+            .background(containerColor)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            ),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = tint,
-            modifier = Modifier.size(32.dp)
-        )
+        if (isSelected) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(32.dp)
+                    .graphicsLayer(alpha = 0.99f)
+                    .drawWithCache {
+                        onDrawWithContent {
+                            drawContent()
+                            drawRect(
+                                brush = Brush.linearGradient(gradientColors),
+                                blendMode = BlendMode.SrcIn
+                            )
+                        }
+                    }
+            )
+        } else {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = unselectedColor,
+                modifier = Modifier.size(32.dp)
+            )
+        }
     }
 }
 
