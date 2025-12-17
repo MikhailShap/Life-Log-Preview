@@ -3,79 +3,82 @@ package com.lifelog.feature.today
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lifelog.core.domain.model.Entry
-import com.lifelog.core.domain.repository.EntryRepository
+import com.lifelog.core.domain.model.Sleep
+import com.lifelog.core.domain.usecase.AddSleepUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.Date
+import java.util.Calendar
 import javax.inject.Inject
 
 private const val TAG = "TodayViewModel"
 
 data class TodayUiState(
     val sleepQuality: Int = 3, // 1-5
-    val sleepStartTime: String = "23:00",
-    val sleepEndTime: String = "07:00",
-    val mood: Float = 5f, // Keep old fields just in case, or remove if not needed
-    val anxiety: Float = 0.5f,
-    val notes: String = ""
+    val sleepStartTime: Long = 0L, // Timestamp
+    val sleepEndTime: Long = 0L, // Timestamp
+    val showStartTimePicker: Boolean = false,
+    val showEndTimePicker: Boolean = false
 )
 
 @HiltViewModel
 class TodayViewModel @Inject constructor(
-    private val entryRepository: EntryRepository
+    private val addSleepUseCase: AddSleepUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TodayUiState())
     val uiState: StateFlow<TodayUiState> = _uiState.asStateFlow()
 
     init {
-        Log.d(TAG, "ViewModel initialized")
+        // Initialize with default times (e.g., yesterday 23:00 and today 07:00)
+        val calendar = Calendar.getInstance()
+        
+        calendar.set(Calendar.HOUR_OF_DAY, 7)
+        calendar.set(Calendar.MINUTE, 0)
+        val defaultEnd = calendar.timeInMillis
+
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        val defaultStart = calendar.timeInMillis
+
+        _uiState.value = _uiState.value.copy(
+            sleepStartTime = defaultStart,
+            sleepEndTime = defaultEnd
+        )
     }
 
     fun onSleepQualityChange(quality: Int) {
         _uiState.value = _uiState.value.copy(sleepQuality = quality)
     }
 
-    fun onSleepStartTimeChange(time: String) {
+    fun onSleepStartTimeChange(time: Long) {
         _uiState.value = _uiState.value.copy(sleepStartTime = time)
     }
 
-    fun onSleepEndTimeChange(time: String) {
+    fun onSleepEndTimeChange(time: Long) {
         _uiState.value = _uiState.value.copy(sleepEndTime = time)
     }
 
-    // Keep old methods if needed or refactor them
-    fun onMoodChange(mood: Float) {
-        _uiState.value = _uiState.value.copy(mood = mood)
+    fun showStartTimePicker(show: Boolean) {
+        _uiState.value = _uiState.value.copy(showStartTimePicker = show)
     }
 
-    fun onNotesChange(notes: String) {
-        _uiState.value = _uiState.value.copy(notes = notes)
-    }
-    
-    fun onAnxietyChange(anxiety: Float) {
-        _uiState.value = _uiState.value.copy(anxiety = anxiety)
+    fun showEndTimePicker(show: Boolean) {
+        _uiState.value = _uiState.value.copy(showEndTimePicker = show)
     }
 
     fun saveEntry() {
         viewModelScope.launch {
-            // TODO: Map new UI state to Entry model correctly
             val currentState = _uiState.value
-             val entry = Entry(
-                date = Date(),
-                mood = currentState.sleepQuality, // Temporary mapping
-                energy = 0, 
-                anxiety = 0, 
-                sleepHours = 8f, // Placeholder, calculate from times
-                notes = currentState.notes,
-                tags = emptyList(),
-                videoNoteIds = emptyList()
+            val sleep = Sleep(
+                startTime = currentState.sleepStartTime,
+                endTime = currentState.sleepEndTime,
+                qualityRating = currentState.sleepQuality,
+                notes = null
             )
-            entryRepository.saveEntry(entry)
+            addSleepUseCase(sleep)
         }
     }
 }

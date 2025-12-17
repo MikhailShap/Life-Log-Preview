@@ -2,14 +2,13 @@ package com.lifelog.feature.log
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lifelog.core.domain.model.Entry
-import com.lifelog.core.domain.repository.EntryRepository
+import com.lifelog.core.domain.model.Mood
+import com.lifelog.core.domain.usecase.AddMoodUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.Date
 import javax.inject.Inject
 
 data class LogUiState(
@@ -22,7 +21,7 @@ data class LogUiState(
 
 @HiltViewModel
 class LogViewModel @Inject constructor(
-    private val entryRepository: EntryRepository
+    private val addMoodUseCase: AddMoodUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LogUiState())
@@ -51,18 +50,16 @@ class LogViewModel @Inject constructor(
     fun saveEntry() {
         viewModelScope.launch {
             val currentState = _uiState.value
-            // Note: Entry model might need update to store libido, currently mapping to tags or ignoring
-            val entry = Entry(
-                date = Date(),
-                mood = currentState.mood,
+            val mood = Mood(
+                timestamp = System.currentTimeMillis(),
+                rating = currentState.mood,
                 energy = (currentState.energy * 10).toInt(),
-                anxiety = (currentState.stress * 10).toInt(),
-                sleepHours = 0f,
-                notes = currentState.notes,
-                tags = listOf("Libido: ${(currentState.libido * 10).toInt()}"), // Temporary storage
-                videoNoteIds = emptyList()
+                stress = (currentState.stress * 10).toInt(),
+                libido = (currentState.libido * 10).toInt(),
+                note = currentState.notes,
+                tags = emptyList()
             )
-            entryRepository.saveEntry(entry)
+            addMoodUseCase(mood)
         }
     }
 }

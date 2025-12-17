@@ -2,14 +2,19 @@ package com.lifelog.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Primary = Color(0xFFC49FEF) // Светло-фиолетовый акцент
-val BackgroundDark = Color(0xFF1C1C23) // Очень темный фон
-val SurfaceDark = Color(0xFF2C2C35) // Цвет карточек
+// ТЗ Sprint 1 Colors
+val AppBackground = Color(0xFF121212)
+val SurfaceDark = Color(0xFF1E1E1E) // Фон карточек
+val PrimaryPurple = Color(0xFF7F66FF) // Акцент
 val TextPrimary = Color(0xFFFFFFFF)
 val TextSecondary = Color(0xFFA0A0A0)
-val AccentPurple = Color(0xFF7F66FF) // Более насыщенный фиолетовый для графиков
 
-// Цвета для светлой темы (на всякий случай, хотя ориентируемся на темную)
+// Mapping to Material Theme naming for convenience
+val Primary = PrimaryPurple
+val BackgroundDark = AppBackground
+val SurfaceDarkColors = SurfaceDark
+val AccentPurple = PrimaryPurple
+
 val BackgroundLight = Color(0xFFF2F2F7)
 val SurfaceLight = Color(0xFFFFFFFF)
 val TextLight = Color(0xFF000000)

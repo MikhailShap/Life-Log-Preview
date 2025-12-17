@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -42,12 +41,12 @@ import java.util.Locale
 @Composable
 fun LogScreen(
     viewModel: LogViewModel = hiltViewModel(),
-    onNavigateToRecord: () -> Unit
+    onNavigateToRecord: () -> Unit,
+    onMenuClick: () -> Unit // Added callback
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
     
-    // Fix date format to respect locale
     val currentLocale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
     val date = remember(currentLocale) {
         SimpleDateFormat("d MMMM", currentLocale).format(Date())
@@ -63,20 +62,15 @@ fun LogScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = onMenuClick) { // Use callback
+                        Icon(Icons.Default.Menu, contentDescription = "Menu") // Hamburger icon
                     }
                 },
-                actions = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Menu")
-                    }
-                },
+                // Removed actions (right menu) as per new design request focus on left menu
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
-                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         },

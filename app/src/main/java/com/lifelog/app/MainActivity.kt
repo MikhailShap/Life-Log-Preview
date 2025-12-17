@@ -15,8 +15,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.lifecycleScope
@@ -28,9 +26,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.lifelog.core.domain.model.ThemeMode
 import com.lifelog.core.ui.theme.LifeLogAppTheme
-import com.lifelog.feature.log.LogScreen
+import com.lifelog.feature.log.LogRootScreen
 import com.lifelog.feature.settings.SettingsScreen
-import com.lifelog.feature.today.TodayScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
@@ -44,16 +41,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 private const val TAG = "MainActivity"
 
-sealed class Screen(val route: String, val label: Int, val icon: ImageVector) {
-    object Sleep : Screen("sleep", R.string.nav_sleep, Icons.Default.Bedtime)
-    object Mood : Screen("mood", R.string.nav_mood, Icons.Default.SentimentSatisfied)
+sealed class Screen(val route: String, val labelRes: Int, val icon: ImageVector) {
+    object Log : Screen("log", R.string.nav_log, Icons.Default.RadioButtonChecked)
     object Stats : Screen("stats", R.string.nav_stats, Icons.Default.BarChart)
     object Profile : Screen("profile", R.string.nav_profile, Icons.Default.Person)
 }
 
 val items = listOf(
-    Screen.Sleep,
-    Screen.Mood,
+    Screen.Log,
     Screen.Stats,
     Screen.Profile,
 )
@@ -67,33 +62,22 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate called")
         
-        // Keep AppCompatDelegate sync for system compatibility
+        // Listen for language changes from ViewModel
         viewModel.language
-            .distinctUntilChanged()
+            .distinctUntilChanged() // Only react if the language string actually changed
             .onEach { language ->
                 val appLocale = LocaleListCompat.forLanguageTags(language)
+                // Let AppCompatDelegate handle the rest. It checks internally if the locale is different.
                 AppCompatDelegate.setApplicationLocales(appLocale)
             }
             .launchIn(lifecycleScope)
 
         setContent {
             val themeMode by viewModel.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
-            val language by viewModel.language.collectAsState(initial = "en")
             
-            // Force locale update for Compose
-            val locale = Locale(language)
-            val configuration = LocalConfiguration.current
-            configuration.setLocale(locale)
-            val resources = LocalContext.current.resources
-            resources.updateConfiguration(configuration, resources.displayMetrics)
-
-            val darkTheme = when (themeMode) {
-                ThemeMode.LIGHT -> false
-                ThemeMode.DARK -> true
-                ThemeMode.SYSTEM -> isSystemInDarkTheme()
-            }
+            // Force dark theme based on the design requirement
+            val darkTheme = true 
 
             LifeLogAppTheme(darkTheme = darkTheme) {
                 val navController = rememberNavController()
@@ -109,7 +93,7 @@ class MainActivity : ComponentActivity() {
                                 val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
                                 NavigationBarItem(
                                     icon = { Icon(screen.icon, contentDescription = null) },
-                                    label = { Text(stringResource(screen.label)) },
+                                    label = { Text(stringResource(screen.labelRes)) },
                                     selected = selected,
                                     onClick = {
                                         navController.navigate(screen.route) {
@@ -132,10 +116,10 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { innerPadding ->
-                    NavHost(navController, startDestination = Screen.Sleep.route, Modifier.padding(innerPadding)) {
-                        composable(Screen.Sleep.route) { TodayScreen() }
-                        composable(Screen.Mood.route) {
-                            LogScreen(
+                    NavHost(navController, startDestination = Screen.Log.route, Modifier.padding(innerPadding)) {
+                        composable(Screen.Log.route) {
+                            // The LogRootScreen handles the Drawer and sub-navigation (Mood, Sleep, etc.)
+                            LogRootScreen(
                                 onNavigateToRecord = { navController.navigate(recordVideoRoute) }
                             )
                         }

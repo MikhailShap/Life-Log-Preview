@@ -1,44 +1,40 @@
 package com.lifelog.core.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Primary,
-    background = BackgroundDark,
+    primary = PrimaryPurple,
+    background = AppBackground,
     surface = SurfaceDark,
-    onPrimary = BackgroundDark, // Текст на кнопке должен быть темным
+    onPrimary = TextPrimary, 
     onBackground = TextPrimary,
     onSurface = TextPrimary,
-    secondary = AccentPurple
+    secondary = PrimaryPurple,
+    onSurfaceVariant = TextSecondary
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Primary,
+    primary = PrimaryPurple,
     background = BackgroundLight,
     surface = SurfaceLight,
     onPrimary = TextPrimary,
     onBackground = TextLight,
     onSurface = TextLight,
-    secondary = AccentPurple
+    secondary = PrimaryPurple
 )
 
 @Composable
 fun LifeLogAppTheme(
-    darkTheme: Boolean = true, // Force dark theme by default for this design
-    dynamicColor: Boolean = false, // Disable dynamic color to stick to the design
+    darkTheme: Boolean = true, // Force Dark per TS
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme

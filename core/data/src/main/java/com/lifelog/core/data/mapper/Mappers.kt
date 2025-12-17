@@ -69,6 +69,9 @@ fun Mood.toEntity() = MoodEntity(
     id = id,
     timestamp = timestamp,
     rating = rating,
+    energy = energy,
+    stress = stress,
+    libido = libido,
     note = note,
     tags = tags
 )
@@ -77,6 +80,9 @@ fun MoodEntity.toDomain() = Mood(
     id = id,
     timestamp = timestamp,
     rating = rating,
+    energy = energy,
+    stress = stress,
+    libido = libido,
     note = note,
     tags = tags
 )
