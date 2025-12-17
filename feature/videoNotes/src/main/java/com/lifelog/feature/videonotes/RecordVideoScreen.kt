@@ -1,10 +1,7 @@
 package com.lifelog.feature.videonotes
 
 import android.Manifest
-import android.content.ContentValues
 import android.net.Uri
-import android.provider.MediaStore
-import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -26,18 +23,12 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.media3.common.MediaItem
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import java.text.SimpleDateFormat
-import java.util.*
+import java.io.File
 import java.util.concurrent.Executor
 
-@OptIn(UnstableApi::class)
-@com.google.accompanist.permissions.ExperimentalPermissionsApi
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RecordVideoScreen(
     viewModel: VideoNotesViewModel,
@@ -91,7 +82,7 @@ fun RecordVideoScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Circular Camera Preview or Video Player - INCREASED SIZE TO 350.dp
+            // Circular Camera Preview or Video Player
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -127,7 +118,7 @@ fun RecordVideoScreen(
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Camera Switch Button - Enabled even during recording as per request
+                        // Camera Switch Button
                         IconButton(
                             onClick = {
                                 cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
@@ -155,20 +146,15 @@ fun RecordVideoScreen(
                                     isRecording = false
                                 } else {
                                     val mainExecutor: Executor = ContextCompat.getMainExecutor(context)
-                                    val name = "video_note_${System.currentTimeMillis()}.mp4"
-                                    val contentValues = ContentValues().apply {
-                                        put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-                                        put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-                                        put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/LifeLog")
-                                    }
-
-                                    val mediaStoreOutputOptions = MediaStoreOutputOptions
-                                        .Builder(context.contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
-                                        .setContentValues(contentValues)
-                                        .build()
+                                    
+                                    val outputDir = File(context.filesDir, "videos").apply { mkdirs() }
+                                    val fileName = "video_note_${System.currentTimeMillis()}.mp4"
+                                    val file = File(outputDir, fileName)
+                                    
+                                    val fileOutputOptions = FileOutputOptions.Builder(file).build()
 
                                     recording = videoCapture.output
-                                        .prepareRecording(context, mediaStoreOutputOptions)
+                                        .prepareRecording(context, fileOutputOptions)
                                         .withAudioEnabled()
                                         .start(mainExecutor) { recordEvent ->
                                             when (recordEvent) {
@@ -178,17 +164,19 @@ fun RecordVideoScreen(
                                                 is VideoRecordEvent.Finalize -> {
                                                     isRecording = false
                                                     if (!recordEvent.hasError()) {
-                                                        previewUri = recordEvent.outputResults.outputUri
+                                                        previewUri = Uri.fromFile(file)
                                                         recordedDuration = recordEvent.recordingStats.recordedDurationNanos / 1_000_000
+                                                    } else {
+                                                        file.delete()
                                                     }
                                                 }
                                             }
                                         }
                                 }
                             },
-                            containerColor = if (isRecording) Color.Red else Color(0xFF9575CD), // Purple-ish as in screenshot
+                            containerColor = if (isRecording) Color.Red else Color(0xFF9575CD),
                             shape = CircleShape,
-                            modifier = Modifier.size(84.dp) // Slightly bigger
+                            modifier = Modifier.size(84.dp)
                         ) {
                             Icon(
                                 if (isRecording) Icons.Default.Stop else Icons.Default.FiberManualRecord,
@@ -198,7 +186,6 @@ fun RecordVideoScreen(
                             )
                         }
 
-                        // Spacer to balance
                         Spacer(modifier = Modifier.width(48.dp))
                     }
                 } else {
@@ -209,7 +196,10 @@ fun RecordVideoScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Button(
-                            onClick = { previewUri = null },
+                            onClick = { 
+                                previewUri?.path?.let { File(it).delete() }
+                                previewUri = null 
+                            },
                             colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
                         ) {
                             Icon(Icons.Default.Refresh, contentDescription = "Retake")
@@ -276,40 +266,6 @@ fun CameraPreview(
 
     AndroidView(
         factory = { previewView },
-        modifier = modifier
-    )
-}
-
-@OptIn(UnstableApi::class)
-@Composable
-fun VideoPlayer(
-    modifier: Modifier = Modifier,
-    uri: Uri
-) {
-    val context = LocalContext.current
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(uri))
-            repeatMode = ExoPlayer.REPEAT_MODE_ONE
-            prepare()
-            playWhenReady = true
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            exoPlayer.release()
-        }
-    }
-
-    AndroidView(
-        factory = {
-            PlayerView(context).apply {
-                player = exoPlayer
-                useController = false
-                resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-            }
-        },
         modifier = modifier
     )
 }

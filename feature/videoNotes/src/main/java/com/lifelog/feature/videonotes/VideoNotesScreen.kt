@@ -1,11 +1,13 @@
 package com.lifelog.feature.videonotes
 
+import android.net.Uri
 import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -13,17 +15,17 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.VideoNote
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -35,11 +37,7 @@ fun VideoNotesScreen(
     onMenuClick: () -> Unit
 ) {
     val notes by viewModel.videoNotes.collectAsState()
-    
-    // Filter today's notes
-    val todayNotes = notes.filter { 
-        DateUtils.isToday(it.createdAt.time)
-    }
+    var selectedVideo by remember { mutableStateOf<VideoNote?>(null) }
 
     Scaffold(
         topBar = {
@@ -78,17 +76,10 @@ fun VideoNotesScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            Text(
-                text = "Today's Recordings",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(16.dp)
-            )
-
-            if (todayNotes.isEmpty()) {
+            if (notes.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("No video notes for today", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("No video notes yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(onClick = onNavigateToRecord) {
                             Text("Record First Note")
@@ -96,62 +87,125 @@ fun VideoNotesScreen(
                     }
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 150.dp),
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    items(todayNotes) { note ->
-                        VideoNoteItem(note = note)
+                    items(notes) { note ->
+                        VideoNoteGridItem(
+                            note = note, 
+                            onClick = { selectedVideo = note }
+                        )
                     }
                 }
+            }
+        }
+
+        if (selectedVideo != null) {
+            VideoPlayerDialog(
+                note = selectedVideo!!,
+                onDismiss = { selectedVideo = null }
+            )
+        }
+    }
+}
+
+@Composable
+fun VideoNoteGridItem(note: VideoNote, onClick: () -> Unit) {
+    val timeFormat = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(0.8f) // Slightly taller than square
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Placeholder for thumbnail (since generating one requires coil-video or manual extraction)
+            // Ideally we'd use Coil: AsyncImage(model = note.uri, ...)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.PlayArrow, 
+                    contentDescription = null, 
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(12.dp)
+            ) {
+                Text(
+                    text = timeFormat.format(note.createdAt),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "${note.duration / 1000} sec",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
 }
 
 @Composable
-fun VideoNoteItem(note: VideoNote) {
-    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { /* Play note? */ },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+fun VideoPlayerDialog(note: VideoNote, onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
         ) {
-            // Circle placeholder for video thumbnail
-            Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(Color.DarkGray),
-                contentAlignment = Alignment.Center
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(16.dp)
             ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color.White)
+                // Ensure the URI is valid for the player.
+                // If it's a file path string from Room, convert to Uri.
+                val uri = try {
+                    if (note.uri.startsWith("content://") || note.uri.startsWith("file://")) {
+                        Uri.parse(note.uri)
+                    } else {
+                        Uri.fromFile(File(note.uri))
+                    }
+                } catch (e: Exception) {
+                    Uri.EMPTY
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(300.dp) // Fixed circle size
+                        .clip(CircleShape)
+                        .background(Color.Black)
+                ) {
+                    VideoPlayer(
+                        uri = uri,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Button(onClick = onDismiss) {
+                    Text("Close")
+                }
             }
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Recording at ${timeFormat.format(note.createdAt)}",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "${note.duration / 1000} seconds",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            // Re-record icon or similar could go here if needed per item, 
-            // but usually FAB is enough for "re-recording" (adding new)
         }
     }
 }
