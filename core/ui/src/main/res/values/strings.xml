@@ -60,4 +60,9 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_system">System</string>
+    
+    <!-- Settings Data Section -->
+    <string name="settings_data">Data</string>
+    <string name="export_data">Export Data (CSV)</string>
+    <string name="clear_history">Clear History</string>
 </resources>

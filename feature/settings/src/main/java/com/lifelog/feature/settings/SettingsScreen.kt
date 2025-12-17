@@ -1,9 +1,13 @@
 package com.lifelog.feature.settings
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -85,6 +89,33 @@ fun SettingsScreen(
                 }
             }
 
+            // Data Settings
+            Text(
+                text = stringResource(id = R.string.settings_data),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column {
+                    SettingsActionItem(
+                        title = stringResource(id = R.string.export_data),
+                        onClick = { viewModel.exportData() }
+                    )
+                    
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+
+                    SettingsActionItem(
+                        title = stringResource(id = R.string.clear_history),
+                        onClick = { viewModel.clearHistory() },
+                        textColor = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.weight(1f))
 
             // Logout Button
@@ -159,6 +190,34 @@ fun SettingSwitchItem(title: String, checked: Boolean, onCheckedChange: (Boolean
                 checkedThumbColor = MaterialTheme.colorScheme.primary,
                 checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
             )
+        )
+    }
+}
+
+@Composable
+fun SettingsActionItem(
+    title: String, 
+    onClick: () -> Unit,
+    textColor: Color = MaterialTheme.colorScheme.onSurface
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            color = textColor
+        )
+        Icon(
+            imageVector = Icons.Default.ArrowForward,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp)
         )
     }
 }

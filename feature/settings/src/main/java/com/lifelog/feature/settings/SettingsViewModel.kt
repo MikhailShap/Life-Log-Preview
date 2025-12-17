@@ -42,4 +42,12 @@ class SettingsViewModel @Inject constructor(
             settingsRepository.setLanguage(language)
         }
     }
+
+    fun exportData() {
+        // Placeholder: Implement export logic
+    }
+
+    fun clearHistory() {
+        // Placeholder: Implement clear logic
+    }
 }
