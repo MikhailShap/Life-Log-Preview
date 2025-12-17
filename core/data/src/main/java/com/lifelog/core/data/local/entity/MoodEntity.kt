@@ -9,6 +9,9 @@ data class MoodEntity(
     val id: Long = 0,
     val timestamp: Long,
     val rating: Int,
+    val energy: Int = 0, // Added
+    val stress: Int = 0, // Added
+    val libido: Int = 0, // Added
     val note: String?,
-    val tags: List<String> // Handled by TypeConverter
+    val tags: List<String>
 )

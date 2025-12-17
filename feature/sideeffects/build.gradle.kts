@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.lifelog.feature.log"
+    namespace = "com.lifelog.feature.sideeffects"
     compileSdk = 34
 
     defaultConfig {
@@ -31,12 +31,6 @@ android {
 dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:domain"))
-    
-    // Feature dependencies for the Drawer
-    implementation(project(":feature:today")) // Sleep screen
-    implementation(project(":feature:meds"))
-    implementation(project(":feature:sideeffects"))
-    implementation(project(":feature:videoNotes")) // Video Notes screen - Corrected case
 
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")

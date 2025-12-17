@@ -1,16 +1,15 @@
 package com.lifelog.feature.settings
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -30,7 +29,7 @@ fun SettingsScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.settings_title),
+                        text = stringResource(id = R.string.nav_profile),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                     )
                 },
@@ -47,68 +46,103 @@ fun SettingsScreen(
                 .padding(paddingValues)
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Language Settings
-            SettingsSection(title = stringResource(id = R.string.language)) {
-                SettingsItem(
-                    title = stringResource(id = R.string.english),
-                    isSelected = uiState.language == "en",
-                    onClick = { viewModel.setLanguage("en") }
-                )
-                SettingsItem(
-                    title = stringResource(id = R.string.russian),
-                    isSelected = uiState.language == "ru",
-                    onClick = { viewModel.setLanguage("ru") }
-                )
+            // Profile Header
+            ProfileHeader()
+
+            // App Settings
+            Text(
+                text = "App Settings",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column {
+                    // Dark Theme Switch
+                    SettingSwitchItem(
+                        title = stringResource(id = R.string.theme_dark),
+                        checked = uiState.themeMode == ThemeMode.DARK,
+                        onCheckedChange = { checked ->
+                            viewModel.setThemeMode(if (checked) ThemeMode.DARK else ThemeMode.LIGHT)
+                        }
+                    )
+                    
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+
+                    // Language Switch (RU/EN)
+                    SettingSwitchItem(
+                        title = "Russian Language",
+                        checked = uiState.language == "ru",
+                        onCheckedChange = { checked ->
+                            viewModel.setLanguage(if (checked) "ru" else "en")
+                        }
+                    )
+                }
             }
 
-            // Theme Settings
-            SettingsSection(title = stringResource(id = R.string.theme)) {
-                SettingsItem(
-                    title = stringResource(id = R.string.theme_light),
-                    isSelected = uiState.themeMode == ThemeMode.LIGHT,
-                    onClick = { viewModel.setThemeMode(ThemeMode.LIGHT) }
-                )
-                SettingsItem(
-                    title = stringResource(id = R.string.theme_dark),
-                    isSelected = uiState.themeMode == ThemeMode.DARK,
-                    onClick = { viewModel.setThemeMode(ThemeMode.DARK) }
-                )
-                 SettingsItem(
-                    title = stringResource(id = R.string.theme_system),
-                    isSelected = uiState.themeMode == ThemeMode.SYSTEM,
-                    onClick = { viewModel.setThemeMode(ThemeMode.SYSTEM) }
-                )
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Logout Button
+            Button(
+                onClick = { /* TODO: Implement Logout */ },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Sign Out", style = MaterialTheme.typography.titleMedium)
             }
         }
     }
 }
 
 @Composable
-fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+fun ProfileHeader() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "JD", // Initials placeholder
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 8.dp)
+            text = "John Doe",
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onBackground
         )
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(content = content)
-        }
+        Text(
+            text = "john.doe@example.com",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
 @Composable
-fun SettingsItem(title: String, isSelected: Boolean, onClick: () -> Unit) {
+fun SettingSwitchItem(title: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -118,13 +152,13 @@ fun SettingsItem(title: String, isSelected: Boolean, onClick: () -> Unit) {
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
-        if (isSelected) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = "Selected",
-                tint = MaterialTheme.colorScheme.primary
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
             )
-        }
+        )
     }
-    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
 }

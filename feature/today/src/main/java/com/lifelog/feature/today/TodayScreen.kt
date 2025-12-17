@@ -1,5 +1,6 @@
 package com.lifelog.feature.today
 
+import android.app.TimePickerDialog
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -12,10 +13,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.SentimentDissatisfied
 import androidx.compose.material.icons.filled.SentimentNeutral
 import androidx.compose.material.icons.filled.SentimentSatisfied
@@ -34,23 +35,68 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.ui.R
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodayScreen(
-    viewModel: TodayViewModel = hiltViewModel()
+    viewModel: TodayViewModel = hiltViewModel(),
+    onMenuClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+
+    val startTimeCalendar = Calendar.getInstance().apply { timeInMillis = uiState.sleepStartTime }
+    val endTimeCalendar = Calendar.getInstance().apply { timeInMillis = uiState.sleepEndTime }
+
+    if (uiState.showStartTimePicker) {
+        TimePickerDialog(
+            context,
+            { _, hour, minute ->
+                val cal = Calendar.getInstance().apply { timeInMillis = uiState.sleepStartTime }
+                cal.set(Calendar.HOUR_OF_DAY, hour)
+                cal.set(Calendar.MINUTE, minute)
+                viewModel.onSleepStartTimeChange(cal.timeInMillis)
+                viewModel.showStartTimePicker(false)
+            },
+            startTimeCalendar.get(Calendar.HOUR_OF_DAY),
+            startTimeCalendar.get(Calendar.MINUTE),
+            true // 24h format
+        ).apply {
+            setOnCancelListener { viewModel.showStartTimePicker(false) }
+            show()
+        }
+    }
+
+    if (uiState.showEndTimePicker) {
+        TimePickerDialog(
+            context,
+            { _, hour, minute ->
+                val cal = Calendar.getInstance().apply { timeInMillis = uiState.sleepEndTime }
+                cal.set(Calendar.HOUR_OF_DAY, hour)
+                cal.set(Calendar.MINUTE, minute)
+                viewModel.onSleepEndTimeChange(cal.timeInMillis)
+                viewModel.showEndTimePicker(false)
+            },
+            endTimeCalendar.get(Calendar.HOUR_OF_DAY),
+            endTimeCalendar.get(Calendar.MINUTE),
+            true
+        ).apply {
+            setOnCancelListener { viewModel.showEndTimePicker(false) }
+            show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -62,8 +108,8 @@ fun TodayScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = onMenuClick) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu")
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -83,23 +129,35 @@ fun TodayScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Date Selector
             DateSelector()
 
-            // Sleep Time Inputs
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    TimeInput(label = stringResource(id = R.string.sleep_start_time), time = uiState.sleepStartTime) {
-                        viewModel.onSleepStartTimeChange(it)
-                    }
-                    TimeInput(label = stringResource(id = R.string.sleep_end_time), time = uiState.sleepEndTime) {
-                        viewModel.onSleepEndTimeChange(it)
-                    }
+                    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+                    
+                    TimeInput(
+                        label = stringResource(id = R.string.sleep_start_time),
+                        time = timeFormat.format(Date(uiState.sleepStartTime)),
+                        onClick = { viewModel.showStartTimePicker(true) }
+                    )
+                    TimeInput(
+                        label = stringResource(id = R.string.sleep_end_time),
+                        time = timeFormat.format(Date(uiState.sleepEndTime)),
+                        onClick = { viewModel.showEndTimePicker(true) }
+                    )
 
-                    // Duration
+                    // Duration Calculation
+                    val durationMillis = uiState.sleepEndTime - uiState.sleepStartTime
+                    // Handle case where end time is next day (if negative diff)
+                    val adjustedDuration = if (durationMillis < 0) durationMillis + TimeUnit.DAYS.toMillis(1) else durationMillis
+                    
+                    val hours = TimeUnit.MILLISECONDS.toHours(adjustedDuration)
+                    val minutes = TimeUnit.MILLISECONDS.toMinutes(adjustedDuration) % 60
+                    val durationString = String.format("%d%s %02d%s", hours, "h", minutes, "m") // Localize h/m later if needed
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -125,13 +183,12 @@ fun TodayScreen(
                             modifier = Modifier.weight(1f)
                         )
                         Text(
-                            text = "8h 00m", // TODO: Calculate dynamically
+                            text = durationString,
                             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
-                    // Sleep Quality
                     Text(
                         text = stringResource(id = R.string.sleep_quality),
                         style = MaterialTheme.typography.bodyMedium,
@@ -159,7 +216,6 @@ fun TodayScreen(
                 }
             }
 
-            // Save Button
             Button(
                 onClick = { viewModel.saveEntry() },
                 modifier = Modifier
@@ -177,8 +233,9 @@ fun TodayScreen(
                 )
             }
 
-            // Stats Header
-            Row(
+            // Stats section remain same...
+            // ... (I'll keep the rest as is for brevity, or include full file if needed)
+             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -215,19 +272,16 @@ fun TodayScreen(
                 }
             }
 
-            // Stats Chart Placeholder
             Card(
                 modifier = Modifier.fillMaxWidth().height(200.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                 // Placeholder for chart
                  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                      Text(stringResource(id = R.string.stats_chart_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant)
                  }
             }
             
-             // Stats Summary
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 StatsCard(
                     title = stringResource(id = R.string.stats_avg_duration),
@@ -247,7 +301,6 @@ fun TodayScreen(
 
 @Composable
 fun DateSelector() {
-    // Use LocalConfiguration to get the current locale, which is updated in MainActivity
     val currentLocale = LocalConfiguration.current.locales[0]
     val date = remember(currentLocale) {
         SimpleDateFormat("d MMMM", currentLocale).format(Date())
@@ -270,7 +323,7 @@ fun DateSelector() {
                     modifier = Modifier
                         .size(40.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)), // Lighter background
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center
                 ) {
                      Icon(
@@ -297,38 +350,55 @@ fun DateSelector() {
 }
 
 @Composable
-fun TimeInput(label: String, time: String, onTimeChange: (String) -> Unit) {
-    Column {
+fun TimeInput(label: String, time: String, onClick: () -> Unit) {
+    Column(modifier = Modifier.clickable(onClick = onClick)) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        OutlinedTextField(
-            value = time,
-            onValueChange = onTimeChange,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-            ),
-            trailingIcon = {
-                Text(
-                    text = if (label.contains("отхода") || label.contains("Start")) "PM" else "AM", // Mock AM/PM logic
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(end = 16.dp)
-                )
-            }
-        )
+        // Simulate OutlinedTextField appearance but clickable
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .background(Color.Transparent)
+                .graphicsLayer {
+                    // Custom border drawing could be here, or use OutlinedTextField readOnly
+                }
+        ) {
+             OutlinedTextField(
+                value = time,
+                onValueChange = {},
+                readOnly = true,
+                enabled = false, // To prevent focus, clicks handled by parent Column
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    disabledBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface
+                ),
+                trailingIcon = {
+                    Text(
+                        text = "AM/PM", // Simplified, locale specific format handles this usually
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(end = 16.dp)
+                    )
+                }
+            )
+        }
     }
 }
 
+// ... QualityIcon and StatsCard remain same ...
 @Composable
 fun QualityIcon(icon: ImageVector, isSelected: Boolean, onClick: () -> Unit) {
     val scale by animateFloatAsState(
@@ -343,7 +413,6 @@ fun QualityIcon(icon: ImageVector, isSelected: Boolean, onClick: () -> Unit) {
         label = "containerColor"
     )
     
-    // Blue-Cyan gradient for selected state, grey for unselected
     val gradientColors = listOf(Color(0xFF42A5F5), Color(0xFF26C6DA))
     val unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
 

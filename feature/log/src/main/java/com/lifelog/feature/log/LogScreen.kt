@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -42,15 +41,18 @@ import java.util.Locale
 @Composable
 fun LogScreen(
     viewModel: LogViewModel = hiltViewModel(),
-    onNavigateToRecord: () -> Unit
+    onNavigateToRecord: () -> Unit,
+    onMenuClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
     
-    // Fix date format to respect locale
-    val currentLocale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
-    val date = remember(currentLocale) {
-        SimpleDateFormat("d MMMM", currentLocale).format(Date())
+    val dateText = remember {
+        try {
+            SimpleDateFormat("d MMMM", Locale.getDefault()).format(Date())
+        } catch (e: Exception) {
+            "Today"
+        }
     }
 
     Scaffold(
@@ -58,29 +60,21 @@ fun LogScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.date_today_format, date),
+                        text = stringResource(id = R.string.date_today_format, dateText),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                    IconButton(onClick = onMenuClick) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu")
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
-                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
+                    containerColor = Color.Transparent
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent // Используем прозрачный, чтобы видеть Surface
     ) { paddingValues ->
         Column(
             modifier = Modifier

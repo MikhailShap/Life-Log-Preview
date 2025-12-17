@@ -4,8 +4,16 @@
     <!-- Navigation -->
     <string name="nav_sleep">Sleep</string>
     <string name="nav_mood">Mood</string>
+    <string name="nav_log">Log</string> <!-- Added Log -->
     <string name="nav_stats">Stats</string>
     <string name="nav_profile">Profile</string>
+    
+    <!-- Drawer Menu -->
+    <string name="menu_mood">Mood</string>
+    <string name="menu_sleep">Sleep</string>
+    <string name="menu_meds">Meds</string>
+    <string name="menu_side_effects">Side Effects</string>
+    <string name="menu_video_note">Video Note</string>
 
     <!-- Today Screen (Sleep) -->
     <string name="sleep_log_title">Sleep Log</string>

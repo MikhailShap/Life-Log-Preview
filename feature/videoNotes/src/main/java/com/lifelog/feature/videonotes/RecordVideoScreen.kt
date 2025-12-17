@@ -2,36 +2,42 @@ package com.lifelog.feature.videonotes
 
 import android.Manifest
 import android.content.ContentValues
+import android.net.Uri
 import android.provider.MediaStore
+import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.*
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Executor
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(UnstableApi::class)
+@com.google.accompanist.permissions.ExperimentalPermissionsApi
 @Composable
 fun RecordVideoScreen(
     viewModel: VideoNotesViewModel,
@@ -41,9 +47,14 @@ fun RecordVideoScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     var recording: Recording? by remember { mutableStateOf(null) }
+    var isRecording by remember { mutableStateOf(false) }
+    var previewUri by remember { mutableStateOf<Uri?>(null) }
+    var recordedDuration by remember { mutableLongStateOf(0L) }
+    var cameraSelector by remember { mutableStateOf(CameraSelector.DEFAULT_FRONT_CAMERA) }
+
     val videoCapture: VideoCapture<Recorder> = remember {
         val recorder = Recorder.Builder()
-            .setQualitySelector(QualitySelector.from(Quality.HIGHEST))
+            .setQualitySelector(QualitySelector.from(Quality.HD))
             .build()
         VideoCapture.withOutput(recorder)
     }
@@ -59,85 +70,246 @@ fun RecordVideoScreen(
         permissionsState.launchMultiplePermissionRequest()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        AndroidView(
-            factory = { context ->
-                val previewView = PreviewView(context)
-                val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-                cameraProviderFuture.addListener({
-                    val cameraProvider = cameraProviderFuture.get()
-
-                    val preview = Preview.Builder().build().also {
-                        it.setSurfaceProvider(previewView.surfaceProvider)
-                    }
-
-                    val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-                    try {
-                        cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(
-                            lifecycleOwner,
-                            cameraSelector,
-                            preview,
-                            videoCapture
-                        )
-                    } catch (exc: Exception) {
-                        // Handle exceptions
-                    }
-                }, ContextCompat.getMainExecutor(context))
-                previewView
-            },
-            modifier = Modifier.fillMaxSize()
-        )
-
-        Button(
-            onClick = {
-                if (recording == null) {
-                    val mainExecutor: Executor = ContextCompat.getMainExecutor(context)
-
-                    val name = "video_${SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US).format(System.currentTimeMillis())}.mp4"
-                    val contentValues = ContentValues().apply {
-                        put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-                        put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-                        put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/VideoNotes")
-                    }
-
-                    val mediaStoreOutputOptions = MediaStoreOutputOptions
-                        .Builder(context.contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
-                        .setContentValues(contentValues)
-                        .build()
-                    recording = videoCapture.output
-                        .prepareRecording(context, mediaStoreOutputOptions)
-                        .start(mainExecutor) { recordEvent ->
-                            when (recordEvent) {
-                                is VideoRecordEvent.Start -> {
-                                    // Recording started
-                                }
-                                is VideoRecordEvent.Finalize -> {
-                                    if (!recordEvent.hasError()) {
-                                        viewModel.saveVideoNote(recordEvent.outputResults.outputUri, recordEvent.recordingStats.recordedDurationNanos)
-                                        onVideoSaved()
-                                    }
-                                }
-                            }
-                        }
-                } else {
-                    recording?.stop()
-                    recording = null
+    if (!permissionsState.allPermissionsGranted) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Camera & Audio permissions are required", color = Color.White)
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(onClick = { permissionsState.launchMultiplePermissionRequest() }) {
+                    Text("Grant Permissions")
                 }
-            },
-            modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)
-        ) {
-            Icon(Icons.Default.PlayArrow, contentDescription = "Record")
+            }
         }
+        return
     }
 
-    if (!permissionsState.allPermissionsGranted) {
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            Text("Permissions not granted.")
-            Button(onClick = { permissionsState.launchMultiplePermissionRequest() }) {
-                Text("Request permissions")
+    Scaffold(
+        containerColor = Color.Black
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            // Circular Camera Preview or Video Player - INCREASED SIZE TO 350.dp
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(350.dp)
+                    .clip(CircleShape)
+                    .background(Color.DarkGray)
+            ) {
+                if (previewUri == null) {
+                    CameraPreview(
+                        modifier = Modifier.fillMaxSize(),
+                        cameraSelector = cameraSelector,
+                        videoCapture = videoCapture
+                    )
+                } else {
+                    VideoPlayer(
+                        modifier = Modifier.fillMaxSize(),
+                        uri = previewUri!!
+                    )
+                }
+            }
+
+            // Controls
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 64.dp)
+            ) {
+                if (previewUri == null) {
+                    // Recording Controls
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Camera Switch Button - Enabled even during recording as per request
+                        IconButton(
+                            onClick = {
+                                cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
+                                    CameraSelector.DEFAULT_FRONT_CAMERA
+                                } else {
+                                    CameraSelector.DEFAULT_BACK_CAMERA
+                                }
+                            }
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(Color.DarkGray.copy(alpha = 0.5f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.FlipCameraAndroid, contentDescription = "Switch Camera", tint = Color.White)
+                            }
+                        }
+
+                        FloatingActionButton(
+                            onClick = {
+                                if (isRecording) {
+                                    recording?.stop()
+                                    recording = null
+                                    isRecording = false
+                                } else {
+                                    val mainExecutor: Executor = ContextCompat.getMainExecutor(context)
+                                    val name = "video_note_${System.currentTimeMillis()}.mp4"
+                                    val contentValues = ContentValues().apply {
+                                        put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+                                        put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+                                        put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/LifeLog")
+                                    }
+
+                                    val mediaStoreOutputOptions = MediaStoreOutputOptions
+                                        .Builder(context.contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+                                        .setContentValues(contentValues)
+                                        .build()
+
+                                    recording = videoCapture.output
+                                        .prepareRecording(context, mediaStoreOutputOptions)
+                                        .withAudioEnabled()
+                                        .start(mainExecutor) { recordEvent ->
+                                            when (recordEvent) {
+                                                is VideoRecordEvent.Start -> {
+                                                    isRecording = true
+                                                }
+                                                is VideoRecordEvent.Finalize -> {
+                                                    isRecording = false
+                                                    if (!recordEvent.hasError()) {
+                                                        previewUri = recordEvent.outputResults.outputUri
+                                                        recordedDuration = recordEvent.recordingStats.recordedDurationNanos / 1_000_000
+                                                    }
+                                                }
+                                            }
+                                        }
+                                }
+                            },
+                            containerColor = if (isRecording) Color.Red else Color(0xFF9575CD), // Purple-ish as in screenshot
+                            shape = CircleShape,
+                            modifier = Modifier.size(84.dp) // Slightly bigger
+                        ) {
+                            Icon(
+                                if (isRecording) Icons.Default.Stop else Icons.Default.FiberManualRecord,
+                                contentDescription = if (isRecording) "Stop" else "Record",
+                                modifier = Modifier.size(42.dp),
+                                tint = Color.White
+                            )
+                        }
+
+                        // Spacer to balance
+                        Spacer(modifier = Modifier.width(48.dp))
+                    }
+                } else {
+                    // Preview Controls
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = { previewUri = null },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Retake")
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Retake")
+                        }
+
+                        FloatingActionButton(
+                            onClick = {
+                                previewUri?.let { uri ->
+                                    viewModel.saveVideoNote(uri, recordedDuration)
+                                    onVideoSaved()
+                                }
+                            },
+                            containerColor = Color(0xFF4CAF50), // Green
+                            shape = CircleShape
+                        ) {
+                            Icon(Icons.Default.Check, contentDescription = "Done", tint = Color.White)
+                        }
+                    }
+                }
+            }
+            
+            if (isRecording) {
+                 Text(
+                    text = "Recording...",
+                    color = Color.Red,
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 32.dp),
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
         }
     }
+}
+
+@Composable
+fun CameraPreview(
+    modifier: Modifier = Modifier,
+    cameraSelector: CameraSelector,
+    videoCapture: VideoCapture<Recorder>
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val previewView = remember { PreviewView(context) }
+
+    LaunchedEffect(cameraSelector) {
+        val cameraProvider = ProcessCameraProvider.getInstance(context).get()
+        val preview = Preview.Builder().build().also {
+            it.setSurfaceProvider(previewView.surfaceProvider)
+        }
+
+        try {
+            cameraProvider.unbindAll()
+            cameraProvider.bindToLifecycle(
+                lifecycleOwner,
+                cameraSelector,
+                preview,
+                videoCapture
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    AndroidView(
+        factory = { previewView },
+        modifier = modifier
+    )
+}
+
+@OptIn(UnstableApi::class)
+@Composable
+fun VideoPlayer(
+    modifier: Modifier = Modifier,
+    uri: Uri
+) {
+    val context = LocalContext.current
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            setMediaItem(MediaItem.fromUri(uri))
+            repeatMode = ExoPlayer.REPEAT_MODE_ONE
+            prepare()
+            playWhenReady = true
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
+    AndroidView(
+        factory = {
+            PlayerView(context).apply {
+                player = exoPlayer
+                useController = false
+                resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+            }
+        },
+        modifier = modifier
+    )
 }

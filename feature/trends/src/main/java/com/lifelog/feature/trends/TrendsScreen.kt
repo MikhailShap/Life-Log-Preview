@@ -1,32 +1,265 @@
 package com.lifelog.feature.trends
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.lifelog.core.domain.model.Mood
+import com.lifelog.core.domain.model.Sleep
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
-fun TrendsScreen() {
+fun TrendsScreen(
+    viewModel: TrendsViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
+            .verticalScroll(scrollState),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Text(
-            text = "Trends",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-        Card {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Charts for mood, energy, anxiety, and sleep will be rendered here.", style = MaterialTheme.typography.bodyMedium)
-                Text("Switch between week and month views to match the MVP requirements.", style = MaterialTheme.typography.bodyMedium)
+        // Header
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Statistics",
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            TimeRangeSelector(
+                selectedRange = uiState.timeRange,
+                onRangeSelected = { viewModel.setTimeRange(it) }
+            )
+        }
+
+        // Mood Chart
+        StatsCard(title = "Mood Flow") {
+            if (uiState.moodData.isNotEmpty()) {
+                MoodChart(data = uiState.moodData)
+            } else {
+                EmptyState("No mood data yet")
             }
+        }
+
+        // Sleep Chart
+        StatsCard(title = "Sleep Duration") {
+            if (uiState.sleepData.isNotEmpty()) {
+                SleepChart(data = uiState.sleepData)
+            } else {
+                EmptyState("No sleep data yet")
+            }
+        }
+
+        // Energy Bar Chart
+        StatsCard(title = "Energy Levels") {
+            if (uiState.moodData.isNotEmpty()) {
+                BarChart(
+                    data = uiState.moodData.map { it.energy.toFloat() / 10f },
+                    color = Color(0xFFFFB74D),
+                    maxVal = 1f
+                )
+            } else {
+                EmptyState("No energy data")
+            }
+        }
+    }
+}
+
+@Composable
+fun TimeRangeSelector(selectedRange: TimeRange, onRangeSelected: (TimeRange) -> Unit) {
+    Row(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+            .padding(4.dp)
+    ) {
+        TimeRange.values().forEach { range ->
+            val isSelected = range == selectedRange
+            Box(
+                modifier = Modifier
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        RoundedCornerShape(6.dp)
+                    )
+                    .clickable { onRangeSelected(range) }
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = range.name.lowercase().replaceFirstChar { it.uppercase() },
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun StatsCard(title: String, content: @Composable () -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            Box(modifier = Modifier.height(180.dp).fillMaxWidth()) {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyState(msg: String) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(msg, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+fun MoodChart(data: List<Mood>) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        if (data.isEmpty()) return@Canvas
+
+        val width = size.width
+        val height = size.height
+        val stepX = width / (data.size - 1).coerceAtLeast(1)
+        val maxVal = 5f // Mood 1-5
+
+        val points = data.mapIndexed { index, mood ->
+            val x = index * stepX
+            val y = height - (mood.rating / maxVal) * height
+            Offset(x, y)
+        }
+
+        val path = Path().apply {
+            moveTo(points.first().x, points.first().y)
+            for (i in 0 until points.size - 1) {
+                val p1 = points[i]
+                val p2 = points[i + 1]
+                // Simple bezier
+                cubicTo(
+                    (p1.x + p2.x) / 2, p1.y,
+                    (p1.x + p2.x) / 2, p2.y,
+                    p2.x, p2.y
+                )
+            }
+        }
+
+        drawPath(
+            path = path,
+            color = primaryColor,
+            style = Stroke(width = 4.dp.toPx())
+        )
+        
+        // Fill gradient
+        val fillPath = Path().apply {
+            addPath(path)
+            lineTo(points.last().x, height)
+            lineTo(points.first().x, height)
+            close()
+        }
+        
+        drawPath(
+            path = fillPath,
+            brush = Brush.verticalGradient(
+                colors = listOf(primaryColor.copy(alpha = 0.3f), Color.Transparent)
+            )
+        )
+    }
+}
+
+@Composable
+fun SleepChart(data: List<Sleep>) {
+    val color = Color(0xFF42A5F5)
+    
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        if (data.isEmpty()) return@Canvas
+
+        val width = size.width
+        val height = size.height
+        val stepX = width / (data.size - 1).coerceAtLeast(1)
+        
+        // Calculate duration in hours
+        val durations = data.map { 
+            val diff = it.endTime - it.startTime
+            // Handle day crossing if needed, but simplistic here
+            (diff.toFloat() / (1000 * 60 * 60)) 
+        }
+        val maxVal = 12f // Max 12 hours on chart
+
+        val points = durations.mapIndexed { index, hours ->
+            val x = index * stepX
+            val y = height - (hours.coerceAtMost(maxVal) / maxVal) * height
+            Offset(x, y)
+        }
+
+        points.forEachIndexed { i, p ->
+            if (i < points.size - 1) {
+                drawLine(
+                    color = color,
+                    start = p,
+                    end = points[i+1],
+                    strokeWidth = 3.dp.toPx()
+                )
+            }
+            drawCircle(color = color, center = p, radius = 4.dp.toPx())
+        }
+    }
+}
+
+@Composable
+fun BarChart(data: List<Float>, color: Color, maxVal: Float) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        if (data.isEmpty()) return@Canvas
+        
+        val width = size.width
+        val height = size.height
+        val barWidth = (width / data.size) * 0.6f
+        val stepX = width / data.size
+
+        data.forEachIndexed { index, value ->
+            val barHeight = (value / maxVal) * height
+            val x = index * stepX + (stepX - barWidth) / 2
+            val y = height - barHeight
+            
+            drawRect(
+                color = color,
+                topLeft = Offset(x, y),
+                size = androidx.compose.ui.geometry.Size(barWidth, barHeight)
+            )
         }
     }
 }
