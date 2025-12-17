@@ -3,11 +3,13 @@ package com.lifelog.core.data.mapper
 import com.lifelog.core.data.local.entity.EntryEntity
 import com.lifelog.core.data.local.entity.MedEntity
 import com.lifelog.core.data.local.entity.MoodEntity
+import com.lifelog.core.data.local.entity.SideEffectEntity
 import com.lifelog.core.data.local.entity.SleepEntity
 import com.lifelog.core.data.local.entity.VideoNoteEntity
 import com.lifelog.core.domain.model.Entry
 import com.lifelog.core.domain.model.Med
 import com.lifelog.core.domain.model.Mood
+import com.lifelog.core.domain.model.SideEffect
 import com.lifelog.core.domain.model.Sleep
 import com.lifelog.core.domain.model.VideoNote
 
@@ -101,4 +103,18 @@ fun SleepEntity.toDomain() = Sleep(
     endTime = endTime,
     qualityRating = qualityRating,
     notes = notes
+)
+
+fun SideEffect.toEntity() = SideEffectEntity(
+    id = id,
+    name = name,
+    frequency = frequency,
+    date = date
+)
+
+fun SideEffectEntity.toDomain() = SideEffect(
+    id = id,
+    name = name,
+    frequency = frequency,
+    date = date
 )

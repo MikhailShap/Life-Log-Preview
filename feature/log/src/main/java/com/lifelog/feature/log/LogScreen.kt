@@ -42,14 +42,17 @@ import java.util.Locale
 fun LogScreen(
     viewModel: LogViewModel = hiltViewModel(),
     onNavigateToRecord: () -> Unit,
-    onMenuClick: () -> Unit // Added callback
+    onMenuClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
     
-    val currentLocale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
-    val date = remember(currentLocale) {
-        SimpleDateFormat("d MMMM", currentLocale).format(Date())
+    val dateText = remember {
+        try {
+            SimpleDateFormat("d MMMM", Locale.getDefault()).format(Date())
+        } catch (e: Exception) {
+            "Today"
+        }
     }
 
     Scaffold(
@@ -57,24 +60,21 @@ fun LogScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.date_today_format, date),
+                        text = stringResource(id = R.string.date_today_format, dateText),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onMenuClick) { // Use callback
-                        Icon(Icons.Default.Menu, contentDescription = "Menu") // Hamburger icon
+                    IconButton(onClick = onMenuClick) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu")
                     }
                 },
-                // Removed actions (right menu) as per new design request focus on left menu
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+                    containerColor = Color.Transparent
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent // Используем прозрачный, чтобы видеть Surface
     ) { paddingValues ->
         Column(
             modifier = Modifier

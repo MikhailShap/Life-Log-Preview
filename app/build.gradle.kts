@@ -60,6 +60,7 @@ dependencies {
     implementation(project(":feature:log"))
     implementation(project(":feature:trends"))
     implementation(project(":feature:meds"))
+    implementation(project(":feature:sideeffects"))
     implementation(project(":feature:videoNotes"))
     implementation(project(":feature:breathe"))
     implementation(project(":feature:library"))

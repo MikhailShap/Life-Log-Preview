@@ -7,11 +7,13 @@ import com.lifelog.core.data.local.converter.Converters
 import com.lifelog.core.data.local.dao.EntryDao
 import com.lifelog.core.data.local.dao.MedDao
 import com.lifelog.core.data.local.dao.MoodDao
+import com.lifelog.core.data.local.dao.SideEffectDao
 import com.lifelog.core.data.local.dao.SleepDao
 import com.lifelog.core.data.local.dao.VideoNoteDao
 import com.lifelog.core.data.local.entity.EntryEntity
 import com.lifelog.core.data.local.entity.MedEntity
 import com.lifelog.core.data.local.entity.MoodEntity
+import com.lifelog.core.data.local.entity.SideEffectEntity
 import com.lifelog.core.data.local.entity.SleepEntity
 import com.lifelog.core.data.local.entity.VideoNoteEntity
 
@@ -21,9 +23,10 @@ import com.lifelog.core.data.local.entity.VideoNoteEntity
         VideoNoteEntity::class, 
         MedEntity::class,
         MoodEntity::class,
-        SleepEntity::class
+        SleepEntity::class,
+        SideEffectEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -33,4 +36,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun medDao(): MedDao
     abstract fun moodDao(): MoodDao
     abstract fun sleepDao(): SleepDao
+    abstract fun sideEffectDao(): SideEffectDao
 }

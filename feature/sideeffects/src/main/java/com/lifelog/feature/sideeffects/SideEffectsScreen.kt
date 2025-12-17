@@ -1,13 +1,6 @@
-package com.lifelog.feature.meds
+package com.lifelog.feature.sideeffects
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,45 +8,25 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.lifelog.core.domain.model.Med
+import com.lifelog.core.domain.model.SideEffect
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MedsScreen(
-    viewModel: MedsViewModel = hiltViewModel(),
+fun SideEffectsScreen(
+    viewModel: SideEffectsViewModel = hiltViewModel(),
     onMenuClick: () -> Unit
 ) {
-    val meds by viewModel.meds.collectAsState()
+    val sideEffects by viewModel.sideEffects.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -61,7 +34,7 @@ fun MedsScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Meds",
+                        text = "Side Effects",
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                     )
                 },
@@ -83,7 +56,7 @@ fun MedsScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Med")
+                Icon(Icons.Default.Add, contentDescription = "Add Side Effect")
             }
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -101,39 +74,21 @@ fun MedsScreen(
             )
             
             LazyColumn(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.fillMaxSize()
             ) {
-                items(meds) { med ->
-                    MedCard(med = med, onDelete = {
-                        viewModel.deleteMed(med.id)
+                items(sideEffects) { sideEffect ->
+                    SideEffectCard(sideEffect = sideEffect, onDelete = {
+                        viewModel.deleteSideEffect(sideEffect)
                     })
                 }
-            }
-            
-            Button(
-                onClick = { /* TODO: Implement save log */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text(
-                    text = "Save Med Log",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                )
             }
         }
 
         if (showDialog) {
-            AddMedDialog(
+            AddSideEffectDialog(
                 onDismiss = { showDialog = false },
                 onConfirm = {
-                    viewModel.addMed(it)
+                    viewModel.addSideEffect(it)
                     showDialog = false
                 }
             )
@@ -142,8 +97,8 @@ fun MedsScreen(
 }
 
 @Composable
-fun MedCard(med: Med, onDelete: () -> Unit) {
-    var isChecked by remember { mutableStateOf(false) }
+fun SideEffectCard(sideEffect: SideEffect, onDelete: () -> Unit) {
+    var isChecked by remember { mutableStateOf(true) } // Assume checked if added
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -160,12 +115,12 @@ fun MedCard(med: Med, onDelete: () -> Unit) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = med.name,
+                    text = sideEffect.name,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "${med.dosage} • ${med.timeOfDay}",
+                    text = "Frequency: ${sideEffect.frequency}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -182,47 +137,49 @@ fun MedCard(med: Med, onDelete: () -> Unit) {
 }
 
 @Composable
-fun AddMedDialog(onDismiss: () -> Unit, onConfirm: (Med) -> Unit) {
+fun AddSideEffectDialog(onDismiss: () -> Unit, onConfirm: (SideEffect) -> Unit) {
     var name by remember { mutableStateOf("") }
-    var dosage by remember { mutableStateOf("") }
-    var timeOfDay by remember { mutableStateOf("") }
+    var frequency by remember { mutableStateOf("ONCE") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add New Medication", style = MaterialTheme.typography.titleLarge) },
+        title = { Text("Add Side Effect", style = MaterialTheme.typography.titleLarge) },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Name") },
+                    label = { Text("Symptom name") },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = dosage,
-                    onValueChange = { dosage = it },
-                    label = { Text("Dosage (e.g. 50mg)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = timeOfDay,
-                    onValueChange = { timeOfDay = it },
-                    label = { Text("Time (e.g. Morning)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("How often?", style = MaterialTheme.typography.bodyMedium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = frequency == "ONCE",
+                        onClick = { frequency = "ONCE" }
+                    )
+                    Text("Once")
+                    Spacer(modifier = Modifier.width(16.dp))
+                    RadioButton(
+                        selected = frequency == "ALL_DAY",
+                        onClick = { frequency = "ALL_DAY" }
+                    )
+                    Text("Several times")
+                }
             }
         },
         confirmButton = {
             Button(
                 onClick = {
                     if (name.isNotBlank()) {
-                        val newMed = Med(name = name, dosage = dosage, timeOfDay = timeOfDay)
-                        onConfirm(newMed)
+                        val newSideEffect = SideEffect(
+                            name = name,
+                            frequency = frequency,
+                            date = System.currentTimeMillis()
+                        )
+                        onConfirm(newSideEffect)
                     }
                 },
                 enabled = name.isNotBlank()

@@ -1,57 +1,27 @@
 package com.lifelog.core.ui.theme
 
-import android.app.Activity
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
+import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryPurple,
     background = AppBackground,
     surface = SurfaceDark,
-    onPrimary = TextPrimary, 
-    onBackground = TextPrimary,
-    onSurface = TextPrimary,
-    secondary = PrimaryPurple,
-    onSurfaceVariant = TextSecondary
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = PrimaryPurple,
-    background = BackgroundLight,
-    surface = SurfaceLight,
     onPrimary = TextPrimary,
-    onBackground = TextLight,
-    onSurface = TextLight,
-    secondary = PrimaryPurple
+    onBackground = TextPrimary,
+    onSurface = TextPrimary
 )
 
 @Composable
 fun LifeLogAppTheme(
-    darkTheme: Boolean = true, // Force Dark per TS
+    darkTheme: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
-        }
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        shapes = Shapes,
+        colorScheme = DarkColorScheme,
         content = content
     )
 }
