@@ -18,12 +18,9 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.Mood
 import com.lifelog.core.domain.model.Sleep
-import java.text.SimpleDateFormat
-import java.util.*
 
 @Composable
 fun TrendsScreen(
@@ -47,7 +44,7 @@ fun TrendsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Statistics",
+                text = "Trends",
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -57,12 +54,29 @@ fun TrendsScreen(
             )
         }
 
+        // Summary Section
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SummaryCard(
+                title = "Avg Mood",
+                value = uiState.averageMood,
+                modifier = Modifier.weight(1f)
+            )
+            SummaryCard(
+                title = "Avg Sleep",
+                value = uiState.averageSleep,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
         // Mood Chart
-        StatsCard(title = "Mood Flow") {
+        StatsCard(title = "Mood Dynamics") {
             if (uiState.moodData.isNotEmpty()) {
                 MoodChart(data = uiState.moodData)
             } else {
-                EmptyState("No mood data yet")
+                EmptyState("No mood data")
             }
         }
 
@@ -71,7 +85,7 @@ fun TrendsScreen(
             if (uiState.sleepData.isNotEmpty()) {
                 SleepChart(data = uiState.sleepData)
             } else {
-                EmptyState("No sleep data yet")
+                EmptyState("No sleep data")
             }
         }
 
@@ -79,13 +93,39 @@ fun TrendsScreen(
         StatsCard(title = "Energy Levels") {
             if (uiState.moodData.isNotEmpty()) {
                 BarChart(
-                    data = uiState.moodData.map { it.energy.toFloat() / 10f },
-                    color = Color(0xFFFFB74D),
-                    maxVal = 1f
+                    data = uiState.moodData.map { it.energy.toFloat() },
+                    color = Color(0xFFFFB74D), // Orange
+                    maxVal = 10f // Energy is 0-10
                 )
             } else {
                 EmptyState("No energy data")
             }
+        }
+    }
+}
+
+@Composable
+fun SummaryCard(title: String, value: String, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }
@@ -164,12 +204,16 @@ fun MoodChart(data: List<Mood>) {
             Offset(x, y)
         }
 
+        if (points.size == 1) {
+            drawCircle(color = primaryColor, center = points[0], radius = 6.dp.toPx())
+            return@Canvas
+        }
+
         val path = Path().apply {
             moveTo(points.first().x, points.first().y)
             for (i in 0 until points.size - 1) {
                 val p1 = points[i]
                 val p2 = points[i + 1]
-                // Simple bezier
                 cubicTo(
                     (p1.x + p2.x) / 2, p1.y,
                     (p1.x + p2.x) / 2, p2.y,
@@ -184,7 +228,6 @@ fun MoodChart(data: List<Mood>) {
             style = Stroke(width = 4.dp.toPx())
         )
         
-        // Fill gradient
         val fillPath = Path().apply {
             addPath(path)
             lineTo(points.last().x, height)
@@ -212,18 +255,21 @@ fun SleepChart(data: List<Sleep>) {
         val height = size.height
         val stepX = width / (data.size - 1).coerceAtLeast(1)
         
-        // Calculate duration in hours
         val durations = data.map { 
             val diff = it.endTime - it.startTime
-            // Handle day crossing if needed, but simplistic here
             (diff.toFloat() / (1000 * 60 * 60)) 
         }
-        val maxVal = 12f // Max 12 hours on chart
+        val maxVal = 12f 
 
         val points = durations.mapIndexed { index, hours ->
             val x = index * stepX
             val y = height - (hours.coerceAtMost(maxVal) / maxVal) * height
             Offset(x, y)
+        }
+
+        if (points.size == 1) {
+             drawCircle(color = color, center = points[0], radius = 6.dp.toPx())
+             return@Canvas
         }
 
         points.forEachIndexed { i, p ->

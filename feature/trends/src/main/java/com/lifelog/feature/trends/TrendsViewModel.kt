@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import java.util.Calendar
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 enum class TimeRange {
@@ -21,7 +22,9 @@ enum class TimeRange {
 data class TrendsUiState(
     val timeRange: TimeRange = TimeRange.WEEK,
     val moodData: List<Mood> = emptyList(),
-    val sleepData: List<Sleep> = emptyList()
+    val sleepData: List<Sleep> = emptyList(),
+    val averageMood: String = "-",
+    val averageSleep: String = "-"
 )
 
 @HiltViewModel
@@ -40,10 +43,13 @@ class TrendsViewModel @Inject constructor(
     ) { range, moods, sleeps ->
         val filteredMoods = filterMoodsByRange(moods, range)
         val filteredSleeps = filterSleepsByRange(sleeps, range)
+        
         TrendsUiState(
             timeRange = range,
             moodData = filteredMoods,
-            sleepData = filteredSleeps
+            sleepData = filteredSleeps,
+            averageMood = calculateAverageMood(filteredMoods),
+            averageSleep = calculateAverageSleep(filteredSleeps)
         )
     }.stateIn(
         scope = viewModelScope,
@@ -72,5 +78,23 @@ class TrendsViewModel @Inject constructor(
             TimeRange.MONTH -> calendar.add(Calendar.DAY_OF_YEAR, -30)
         }
         return calendar.timeInMillis
+    }
+
+    private fun calculateAverageMood(moods: List<Mood>): String {
+        if (moods.isEmpty()) return "-"
+        val avg = moods.map { it.rating }.average()
+        return String.format("%.1f", avg)
+    }
+
+    private fun calculateAverageSleep(sleeps: List<Sleep>): String {
+        if (sleeps.isEmpty()) return "-"
+        val avgMillis = sleeps.map { it.endTime - it.startTime }.average()
+        if (avgMillis.isNaN()) return "-"
+        
+        // Handle negative duration if sleep crosses midnight incorrectly (though UI handles it, data might be raw)
+        // Assuming data is correct duration.
+        val hours = TimeUnit.MILLISECONDS.toHours(avgMillis.toLong())
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(avgMillis.toLong()) % 60
+        return "${hours}h ${minutes}m"
     }
 }
