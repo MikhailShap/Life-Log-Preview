@@ -35,4 +35,9 @@ class LogRepositoryImpl @Inject constructor(
             list.map { it.toDomain() }
         }
     }
+
+    override suspend fun clearAllLogs() {
+        moodDao.clearAllMoods()
+        sleepDao.clearAllSleep()
+    }
 }

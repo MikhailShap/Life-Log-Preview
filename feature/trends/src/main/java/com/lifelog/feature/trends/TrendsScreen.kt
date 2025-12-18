@@ -16,11 +16,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.Mood
 import com.lifelog.core.domain.model.Sleep
+import com.lifelog.core.ui.R
 
 @Composable
 fun TrendsScreen(
@@ -44,7 +46,7 @@ fun TrendsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Trends",
+                text = stringResource(id = R.string.trends_title),
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -60,37 +62,37 @@ fun TrendsScreen(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             SummaryCard(
-                title = "Avg Mood",
+                title = stringResource(id = R.string.avg_mood),
                 value = uiState.averageMood,
                 modifier = Modifier.weight(1f)
             )
             SummaryCard(
-                title = "Avg Sleep",
+                title = stringResource(id = R.string.avg_sleep),
                 value = uiState.averageSleep,
                 modifier = Modifier.weight(1f)
             )
         }
 
         // Mood Chart
-        StatsCard(title = "Mood Dynamics") {
+        StatsCard(title = stringResource(id = R.string.mood_dynamics)) {
             if (uiState.moodData.isNotEmpty()) {
                 MoodChart(data = uiState.moodData)
             } else {
-                EmptyState("No mood data")
+                EmptyState(stringResource(id = R.string.no_mood_data))
             }
         }
 
         // Sleep Chart
-        StatsCard(title = "Sleep Duration") {
+        StatsCard(title = stringResource(id = R.string.sleep_duration_title)) {
             if (uiState.sleepData.isNotEmpty()) {
                 SleepChart(data = uiState.sleepData)
             } else {
-                EmptyState("No sleep data")
+                EmptyState(stringResource(id = R.string.no_sleep_data))
             }
         }
 
         // Energy Bar Chart
-        StatsCard(title = "Energy Levels") {
+        StatsCard(title = stringResource(id = R.string.energy_levels)) {
             if (uiState.moodData.isNotEmpty()) {
                 BarChart(
                     data = uiState.moodData.map { it.energy.toFloat() },
@@ -98,7 +100,7 @@ fun TrendsScreen(
                     maxVal = 10f // Energy is 0-10
                 )
             } else {
-                EmptyState("No energy data")
+                EmptyState(stringResource(id = R.string.no_energy_data))
             }
         }
     }
@@ -139,6 +141,10 @@ fun TimeRangeSelector(selectedRange: TimeRange, onRangeSelected: (TimeRange) -> 
     ) {
         TimeRange.values().forEach { range ->
             val isSelected = range == selectedRange
+            val rangeLabel = when(range) {
+                TimeRange.WEEK -> stringResource(id = R.string.stats_week)
+                TimeRange.MONTH -> stringResource(id = R.string.stats_month)
+            }
             Box(
                 modifier = Modifier
                     .background(
@@ -149,7 +155,7 @@ fun TimeRangeSelector(selectedRange: TimeRange, onRangeSelected: (TimeRange) -> 
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = range.name.lowercase().replaceFirstChar { it.uppercase() },
+                    text = rangeLabel,
                     color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelMedium
                 )

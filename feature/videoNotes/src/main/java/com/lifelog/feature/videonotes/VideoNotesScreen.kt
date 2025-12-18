@@ -1,7 +1,6 @@
 package com.lifelog.feature.videonotes
 
 import android.net.Uri
-import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,11 +19,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.VideoNote
+import com.lifelog.core.ui.R
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -44,7 +45,7 @@ fun VideoNotesScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Video Notes",
+                        text = stringResource(id = R.string.menu_video_note),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                     )
                 },
@@ -79,14 +80,20 @@ fun VideoNotesScreen(
             if (notes.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("No video notes yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(id = R.string.no_video_notes), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(onClick = onNavigateToRecord) {
-                            Text("Record First Note")
+                            Text(stringResource(id = R.string.record_first_note))
                         }
                     }
                 }
             } else {
+                Text(
+                    text = stringResource(id = R.string.todays_recordings),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(16.dp)
+                )
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 150.dp),
                     contentPadding = PaddingValues(16.dp),
@@ -120,14 +127,12 @@ fun VideoNoteGridItem(note: VideoNote, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(0.8f) // Slightly taller than square
+            .aspectRatio(0.8f) 
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Placeholder for thumbnail (since generating one requires coil-video or manual extraction)
-            // Ideally we'd use Coil: AsyncImage(model = note.uri, ...)
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -176,8 +181,6 @@ fun VideoPlayerDialog(note: VideoNote, onDismiss: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(16.dp)
             ) {
-                // Ensure the URI is valid for the player.
-                // If it's a file path string from Room, convert to Uri.
                 val uri = try {
                     if (note.uri.startsWith("content://") || note.uri.startsWith("file://")) {
                         Uri.parse(note.uri)
@@ -190,7 +193,7 @@ fun VideoPlayerDialog(note: VideoNote, onDismiss: () -> Unit) {
 
                 Box(
                     modifier = Modifier
-                        .size(300.dp) // Fixed circle size
+                        .size(300.dp) 
                         .clip(CircleShape)
                         .background(Color.Black)
                 ) {
@@ -203,7 +206,7 @@ fun VideoPlayerDialog(note: VideoNote, onDismiss: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Button(onClick = onDismiss) {
-                    Text("Close")
+                    Text(stringResource(id = R.string.cancel))
                 }
             }
         }

@@ -18,4 +18,7 @@ interface SleepDao {
 
     @Delete
     suspend fun deleteSleep(sleep: SleepEntity)
+
+    @Query("DELETE FROM sleep_table")
+    suspend fun clearAllSleep()
 }

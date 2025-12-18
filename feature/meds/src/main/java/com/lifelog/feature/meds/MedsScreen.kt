@@ -39,10 +39,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.Med
+import com.lifelog.core.ui.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -61,7 +63,7 @@ fun MedsScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Meds",
+                        text = stringResource(id = R.string.meds_title),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                     )
                 },
@@ -83,7 +85,7 @@ fun MedsScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Med")
+                Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_med))
             }
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -123,7 +125,7 @@ fun MedsScreen(
                 )
             ) {
                 Text(
-                    text = "Save Med Log",
+                    text = stringResource(id = R.string.save_med_log),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
             }
@@ -189,13 +191,13 @@ fun AddMedDialog(onDismiss: () -> Unit, onConfirm: (Med) -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add New Medication", style = MaterialTheme.typography.titleLarge) },
+        title = { Text(stringResource(id = R.string.add_new_med), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Name") },
+                    label = { Text(stringResource(id = R.string.med_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
@@ -203,7 +205,7 @@ fun AddMedDialog(onDismiss: () -> Unit, onConfirm: (Med) -> Unit) {
                 OutlinedTextField(
                     value = dosage,
                     onValueChange = { dosage = it },
-                    label = { Text("Dosage (e.g. 50mg)") },
+                    label = { Text(stringResource(id = R.string.med_dosage)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
@@ -211,7 +213,7 @@ fun AddMedDialog(onDismiss: () -> Unit, onConfirm: (Med) -> Unit) {
                 OutlinedTextField(
                     value = timeOfDay,
                     onValueChange = { timeOfDay = it },
-                    label = { Text("Time (e.g. Morning)") },
+                    label = { Text(stringResource(id = R.string.med_time)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
@@ -227,12 +229,12 @@ fun AddMedDialog(onDismiss: () -> Unit, onConfirm: (Med) -> Unit) {
                 },
                 enabled = name.isNotBlank()
             ) {
-                Text("Add")
+                Text(stringResource(id = R.string.add))
             }
         },
         dismissButton = {
             Button(onClick = onDismiss, colors = ButtonDefaults.textButtonColors()) {
-                Text("Cancel")
+                Text(stringResource(id = R.string.cancel))
             }
         }
     )

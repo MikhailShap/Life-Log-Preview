@@ -1,12 +1,13 @@
 package com.lifelog.feature.settings
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -39,7 +40,8 @@ fun SettingsScreen(
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         },
@@ -57,7 +59,7 @@ fun SettingsScreen(
 
             // App Settings
             Text(
-                text = "App Settings",
+                text = stringResource(id = R.string.app_settings),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -68,24 +70,53 @@ fun SettingsScreen(
             ) {
                 Column {
                     // Dark Theme Switch
-                    SettingSwitchItem(
-                        title = stringResource(id = R.string.theme_dark),
-                        checked = uiState.themeMode == ThemeMode.DARK,
-                        onCheckedChange = { checked ->
-                            viewModel.setThemeMode(if (checked) ThemeMode.DARK else ThemeMode.LIGHT)
-                        }
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.theme_dark),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        // Use the same custom switcher for consistency
+                        CustomSwitcher(
+                            isLeftSelected = uiState.themeMode != ThemeMode.DARK,
+                            leftLabel = stringResource(id = R.string.theme_light),
+                            rightLabel = stringResource(id = R.string.theme_dark),
+                            onToggle = { isLight ->
+                                viewModel.setThemeMode(if (isLight) ThemeMode.LIGHT else ThemeMode.DARK)
+                            }
+                        )
+                    }
                     
                     HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
 
-                    // Language Switch (RU/EN)
-                    SettingSwitchItem(
-                        title = "Russian Language",
-                        checked = uiState.language == "ru",
-                        onCheckedChange = { checked ->
-                            viewModel.setLanguage(if (checked) "ru" else "en")
-                        }
-                    )
+                    // Language Switch (EN/RU)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "EN / RU",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        CustomSwitcher(
+                            isLeftSelected = uiState.language == "en",
+                            leftLabel = "EN",
+                            rightLabel = "RU",
+                            onToggle = { isEn ->
+                                viewModel.setLanguage(if (isEn) "en" else "ru")
+                            }
+                        )
+                    }
                 }
             }
 
@@ -130,8 +161,63 @@ fun SettingsScreen(
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Sign Out", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(id = R.string.sign_out), style = MaterialTheme.typography.titleMedium)
             }
+        }
+    }
+}
+
+@Composable
+fun CustomSwitcher(
+    isLeftSelected: Boolean,
+    leftLabel: String,
+    rightLabel: String,
+    onToggle: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(4.dp)
+    ) {
+        val leftBgColor by animateColorAsState(if (isLeftSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
+        val leftTextColor by animateColorAsState(if (isLeftSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
+        
+        val rightBgColor by animateColorAsState(if (!isLeftSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
+        val rightTextColor by animateColorAsState(if (!isLeftSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
+
+        // Left Option
+        Box(
+            modifier = Modifier
+                .width(60.dp)
+                .height(32.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(leftBgColor)
+                .clickable { onToggle(true) },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = leftLabel,
+                color = leftTextColor,
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+            )
+        }
+
+        // Right Option
+        Box(
+            modifier = Modifier
+                .width(60.dp)
+                .height(32.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(rightBgColor)
+                .clickable { onToggle(false) },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = rightLabel,
+                color = rightTextColor,
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+            )
         }
     }
 }
@@ -170,31 +256,6 @@ fun ProfileHeader() {
 }
 
 @Composable
-fun SettingSwitchItem(title: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colorScheme.primary,
-                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
-            )
-        )
-    }
-}
-
-@Composable
 fun SettingsActionItem(
     title: String, 
     onClick: () -> Unit,
@@ -214,7 +275,7 @@ fun SettingsActionItem(
             color = textColor
         )
         Icon(
-            imageVector = Icons.Default.ArrowForward,
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(24.dp)

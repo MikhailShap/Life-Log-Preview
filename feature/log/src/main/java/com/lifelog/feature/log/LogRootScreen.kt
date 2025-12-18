@@ -36,10 +36,15 @@ fun LogRootScreen(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet {
-                Spacer(Modifier.height(12.dp))
+            ModalDrawerSheet(
+                // Обнуляем инсеты, чтобы фон шторки был от самого верха экрана
+                windowInsets = WindowInsets(0, 0, 0, 0)
+            ) {
+                // Добавляем отступ для контента, чтобы он не перекрывался статус-баром
+                Spacer(Modifier.statusBarsPadding())
+                
                 Text(
-                    "LifeLog",
+                    text = stringResource(id = R.string.app_name),
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.titleLarge
                 )

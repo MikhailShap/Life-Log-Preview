@@ -60,9 +60,52 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_system">System</string>
+    <string name="app_settings">App Settings</string>
+    <string name="sign_out">Sign Out</string>
     
     <!-- Settings Data Section -->
     <string name="settings_data">Data</string>
     <string name="export_data">Export Data (CSV)</string>
     <string name="clear_history">Clear History</string>
+
+    <!-- Trends Screen -->
+    <string name="trends_title">Trends</string>
+    <string name="avg_mood">Avg Mood</string>
+    <string name="avg_sleep">Avg Sleep</string>
+    <string name="mood_dynamics">Mood Dynamics</string>
+    <string name="sleep_duration_title">Sleep Duration</string>
+    <string name="energy_levels">Energy Levels</string>
+    <string name="no_mood_data">No mood data</string>
+    <string name="no_sleep_data">No sleep data</string>
+    <string name="no_energy_data">No energy data</string>
+
+    <!-- Meds Screen -->
+    <string name="meds_title">Meds</string>
+    <string name="add_med">Add Med</string>
+    <string name="save_med_log">Save Med Log</string>
+    <string name="add_new_med">Add New Medication</string>
+    <string name="med_name">Name</string>
+    <string name="med_dosage">Dosage (e.g. 50mg)</string>
+    <string name="med_time">Time (e.g. Morning)</string>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Side Effects Screen -->
+    <string name="side_effects_title">Side Effects</string>
+    <string name="add_side_effect">Add Side Effect</string>
+    <string name="frequency_label">Frequency: %s</string>
+    <string name="symptom_name">Symptom name</string>
+    <string name="how_often">How often?</string>
+    <string name="once">Once</string>
+    <string name="several_times">Several times</string>
+    
+    <!-- Video Notes -->
+    <string name="video_permissions_required">Camera &amp; Audio permissions are required</string>
+    <string name="grant_permissions">Grant Permissions</string>
+    <string name="retake">Retake</string>
+    <string name="done">Done</string>
+    <string name="recording_label">Recording...</string>
+    <string name="no_video_notes">No video notes yet</string>
+    <string name="record_first_note">Record First Note</string>
+    <string name="todays_recordings">Today\'s Recordings</string>
 </resources>

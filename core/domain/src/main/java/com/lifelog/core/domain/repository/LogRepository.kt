@@ -9,4 +9,5 @@ interface LogRepository {
     fun getMoods(): Flow<List<Mood>>
     suspend fun saveSleep(sleep: Sleep)
     fun getSleepLogs(): Flow<List<Sleep>>
+    suspend fun clearAllLogs()
 }

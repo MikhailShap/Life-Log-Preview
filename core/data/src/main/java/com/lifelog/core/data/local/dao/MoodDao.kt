@@ -18,4 +18,7 @@ interface MoodDao {
 
     @Delete
     suspend fun deleteMood(mood: MoodEntity)
+
+    @Query("DELETE FROM mood_table")
+    suspend fun clearAllMoods()
 }

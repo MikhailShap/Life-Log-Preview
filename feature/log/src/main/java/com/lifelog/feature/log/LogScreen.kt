@@ -47,15 +47,17 @@ fun LogScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
     
-    val dateText = remember {
+    val fallbackToday = stringResource(id = R.string.nav_log)
+    val dateText = remember(Locale.getDefault()) {
         try {
             SimpleDateFormat("d MMMM", Locale.getDefault()).format(Date())
         } catch (e: Exception) {
-            "Today"
+            fallbackToday
         }
     }
 
     Scaffold(
+        modifier = Modifier.statusBarsPadding(), 
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -74,7 +76,7 @@ fun LogScreen(
                 )
             )
         },
-        containerColor = Color.Transparent // Используем прозрачный, чтобы видеть Surface
+        containerColor = Color.Transparent 
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -160,57 +162,7 @@ fun LogScreen(
                 )
             }
 
-            // Video Note Card
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onNavigateToRecord)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.Videocam,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(
-                                text = stringResource(id = R.string.video_note),
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = stringResource(id = R.string.add_short_video),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowForwardIos,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
+            // Video Note Card removed
 
             Spacer(modifier = Modifier.weight(1f))
 

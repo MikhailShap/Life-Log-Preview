@@ -35,6 +35,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0")
     implementation("androidx.compose.material3:material3:1.2.1")
+    implementation("androidx.appcompat:appcompat:1.6.1")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.51.1")

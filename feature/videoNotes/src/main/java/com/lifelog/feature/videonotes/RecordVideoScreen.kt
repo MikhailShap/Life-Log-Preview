@@ -20,11 +20,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.lifelog.core.ui.R
 import java.io.File
 import java.util.concurrent.Executor
 
@@ -64,10 +66,10 @@ fun RecordVideoScreen(
     if (!permissionsState.allPermissionsGranted) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Camera & Audio permissions are required", color = Color.White)
+                Text(stringResource(id = R.string.video_permissions_required), color = Color.White)
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = { permissionsState.launchMultiplePermissionRequest() }) {
-                    Text("Grant Permissions")
+                    Text(stringResource(id = R.string.grant_permissions))
                 }
             }
         }
@@ -204,7 +206,7 @@ fun RecordVideoScreen(
                         ) {
                             Icon(Icons.Default.Refresh, contentDescription = "Retake")
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Retake")
+                            Text(stringResource(id = R.string.retake))
                         }
 
                         FloatingActionButton(
@@ -225,7 +227,7 @@ fun RecordVideoScreen(
             
             if (isRecording) {
                  Text(
-                    text = "Recording...",
+                    text = stringResource(id = R.string.recording_label),
                     color = Color.Red,
                     modifier = Modifier.align(Alignment.TopCenter).padding(top = 32.dp),
                     style = MaterialTheme.typography.titleMedium

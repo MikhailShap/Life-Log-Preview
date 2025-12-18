@@ -1,9 +1,12 @@
 package com.lifelog.feature.settings
 
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lifelog.core.domain.model.ThemeMode
 import com.lifelog.core.domain.repository.SettingsRepository
+import com.lifelog.core.domain.usecase.ClearHistoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +22,8 @@ data class SettingsUiState(
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val clearHistoryUseCase: ClearHistoryUseCase
 ) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> =
@@ -38,16 +42,21 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setLanguage(language: String) {
+        val appLocale = LocaleListCompat.forLanguageTags(language)
+        AppCompatDelegate.setApplicationLocales(appLocale)
+
         viewModelScope.launch {
             settingsRepository.setLanguage(language)
         }
     }
 
     fun exportData() {
-        // Placeholder: Implement export logic
+        // Placeholder for future export logic
     }
 
     fun clearHistory() {
-        // Placeholder: Implement clear logic
+        viewModelScope.launch {
+            clearHistoryUseCase()
+        }
     }
 }

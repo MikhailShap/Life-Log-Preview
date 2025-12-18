@@ -1,9 +1,11 @@
 package com.lifelog.app
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.activity.ComponentActivity // Used for enableEdgeToEdge extension
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -47,7 +49,7 @@ val items = listOf(
 const val recordVideoRoute = "record_video"
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainViewModel by viewModels()
 
@@ -55,8 +57,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // 1. Включаем Edge-to-Edge для прозрачного статус-бара
+        enableEdgeToEdge()
+
         setContent {
-            // Restore theme awareness
             val themeMode by viewModel.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
             val darkTheme = when (themeMode) {
                 ThemeMode.LIGHT -> false

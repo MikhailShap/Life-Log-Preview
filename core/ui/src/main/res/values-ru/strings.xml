@@ -60,4 +60,52 @@
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Темная</string>
     <string name="theme_system">Системная</string>
+    <string name="app_settings">Настройки приложения</string>
+    <string name="sign_out">Выйти</string>
+    
+    <!-- Settings Data Section -->
+    <string name="settings_data">Данные</string>
+    <string name="export_data">Экспорт данных (CSV)</string>
+    <string name="clear_history">Очистить историю</string>
+
+    <!-- Trends Screen -->
+    <string name="trends_title">Статистика</string>
+    <string name="avg_mood">Сред. настр.</string>
+    <string name="avg_sleep">Сред. сон</string>
+    <string name="mood_dynamics">Динамика настроения</string>
+    <string name="sleep_duration_title">Продолжительность сна</string>
+    <string name="energy_levels">Уровень энергии</string>
+    <string name="no_mood_data">Нет данных о настроении</string>
+    <string name="no_sleep_data">Нет данных о сне</string>
+    <string name="no_energy_data">Нет данных об энергии</string>
+
+    <!-- Meds Screen -->
+    <string name="meds_title">Таблетки</string>
+    <string name="add_med">Добавить</string>
+    <string name="save_med_log">Сохранить лог</string>
+    <string name="add_new_med">Добавить препарат</string>
+    <string name="med_name">Название</string>
+    <string name="med_dosage">Дозировка (напр. 50мг)</string>
+    <string name="med_time">Время (напр. Утро)</string>
+    <string name="add">Добавить</string>
+    <string name="cancel">Отмена</string>
+
+    <!-- Side Effects Screen -->
+    <string name="side_effects_title">Побочки</string>
+    <string name="add_side_effect">Добавить побочку</string>
+    <string name="frequency_label">Частота: %s</string>
+    <string name="symptom_name">Название симптома</string>
+    <string name="how_often">Как часто?</string>
+    <string name="once">Один раз</string>
+    <string name="several_times">Несколько раз</string>
+    
+    <!-- Video Notes -->
+    <string name="video_permissions_required">Требуются разрешения на камеру и аудио</string>
+    <string name="grant_permissions">Дать разрешения</string>
+    <string name="retake">Переснять</string>
+    <string name="done">Готово</string>
+    <string name="recording_label">Запись...</string>
+    <string name="no_video_notes">Видеозаметок пока нет</string>
+    <string name="record_first_note">Записать первую заметку</string>
+    <string name="todays_recordings">Записи за сегодня</string>
 </resources>

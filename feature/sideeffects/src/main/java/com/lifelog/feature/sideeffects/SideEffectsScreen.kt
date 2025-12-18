@@ -12,10 +12,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.SideEffect
+import com.lifelog.core.ui.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -34,7 +36,7 @@ fun SideEffectsScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Side Effects",
+                        text = stringResource(id = R.string.side_effects_title),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                     )
                 },
@@ -56,7 +58,7 @@ fun SideEffectsScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Side Effect")
+                Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_side_effect))
             }
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -120,7 +122,7 @@ fun SideEffectCard(sideEffect: SideEffect, onDelete: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "Frequency: ${sideEffect.frequency}",
+                    text = stringResource(id = R.string.frequency_label, sideEffect.frequency),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -143,30 +145,30 @@ fun AddSideEffectDialog(onDismiss: () -> Unit, onConfirm: (SideEffect) -> Unit) 
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Side Effect", style = MaterialTheme.typography.titleLarge) },
+        title = { Text(stringResource(id = R.string.add_side_effect), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Symptom name") },
+                    label = { Text(stringResource(id = R.string.symptom_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("How often?", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(id = R.string.how_often), style = MaterialTheme.typography.bodyMedium)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
                         selected = frequency == "ONCE",
                         onClick = { frequency = "ONCE" }
                     )
-                    Text("Once")
+                    Text(stringResource(id = R.string.once))
                     Spacer(modifier = Modifier.width(16.dp))
                     RadioButton(
                         selected = frequency == "ALL_DAY",
                         onClick = { frequency = "ALL_DAY" }
                     )
-                    Text("Several times")
+                    Text(stringResource(id = R.string.several_times))
                 }
             }
         },
@@ -184,12 +186,12 @@ fun AddSideEffectDialog(onDismiss: () -> Unit, onConfirm: (SideEffect) -> Unit) 
                 },
                 enabled = name.isNotBlank()
             ) {
-                Text("Add")
+                Text(stringResource(id = R.string.add))
             }
         },
         dismissButton = {
             Button(onClick = onDismiss, colors = ButtonDefaults.textButtonColors()) {
-                Text("Cancel")
+                Text(stringResource(id = R.string.cancel))
             }
         }
     )
