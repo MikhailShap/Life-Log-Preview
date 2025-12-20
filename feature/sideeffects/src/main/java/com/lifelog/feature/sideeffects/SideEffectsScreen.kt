@@ -49,7 +49,9 @@ fun SideEffectsScreen(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground,
                     navigationIconContentColor = MaterialTheme.colorScheme.onBackground
-                )
+                ),
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                modifier = Modifier.statusBarsPadding()
             )
         },
         floatingActionButton = {
@@ -61,7 +63,8 @@ fun SideEffectsScreen(
                 Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_side_effect))
             }
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { padding ->
         Column(
             modifier = Modifier

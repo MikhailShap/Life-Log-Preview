@@ -37,7 +37,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogScreen(
     viewModel: LogViewModel = hiltViewModel(),
@@ -50,45 +49,46 @@ fun LogScreen(
     val fallbackToday = stringResource(id = R.string.nav_log)
     val dateText = remember(Locale.getDefault()) {
         try {
-            SimpleDateFormat("d MMMM", Locale.getDefault()).format(Date())
+            SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date())
         } catch (e: Exception) {
             fallbackToday
         }
     }
 
-    Scaffold(
-        modifier = Modifier.statusBarsPadding(), 
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = R.string.date_today_format, dateText),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onMenuClick) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent
-                )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+    ) {
+        // Header Row matching Drawer header height (56dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onMenuClick) {
+                Icon(Icons.Default.Menu, contentDescription = "Menu", tint = MaterialTheme.colorScheme.onBackground)
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = dateText.replaceFirstChar { it.uppercase() },
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onBackground
             )
-        },
-        containerColor = Color.Transparent 
-    ) { paddingValues ->
+        }
+
         Column(
             modifier = Modifier
-                .padding(paddingValues)
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Text(
                 text = stringResource(id = R.string.mood_title),
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold, fontSize = 32.sp),
                 color = MaterialTheme.colorScheme.onBackground
             )
 
@@ -162,8 +162,6 @@ fun LogScreen(
                 )
             }
 
-            // Video Note Card removed
-
             Spacer(modifier = Modifier.weight(1f))
 
             // Save Button
@@ -171,7 +169,8 @@ fun LogScreen(
                 onClick = { viewModel.saveEntry() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(56.dp)
+                    .padding(bottom = 16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,

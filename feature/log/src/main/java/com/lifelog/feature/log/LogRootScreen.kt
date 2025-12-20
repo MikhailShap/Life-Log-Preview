@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.lifelog.core.ui.R
 import com.lifelog.feature.meds.MedsScreen
@@ -37,29 +38,34 @@ fun LogRootScreen(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                // Обнуляем инсеты, чтобы фон шторки был от самого верха экрана
                 windowInsets = WindowInsets(0, 0, 0, 0)
             ) {
-                // Добавляем отступ для контента, чтобы он не перекрывался статус-баром
-                Spacer(Modifier.statusBarsPadding())
-                
-                Text(
-                    text = stringResource(id = R.string.app_name),
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.titleLarge
-                )
-                HorizontalDivider()
-                LogSubScreen.values().forEach { screen ->
-                    NavigationDrawerItem(
-                        label = { Text(stringResource(screen.labelRes)) },
-                        icon = { Icon(screen.icon, contentDescription = null) },
-                        selected = currentScreen == screen,
-                        onClick = {
-                            currentScreen = screen
-                            scope.launch { drawerState.close() }
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
+                Column(modifier = Modifier.statusBarsPadding()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.app_name),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
+                    HorizontalDivider()
+                    LogSubScreen.values().forEach { screen ->
+                        NavigationDrawerItem(
+                            label = { Text(stringResource(screen.labelRes)) },
+                            icon = { Icon(screen.icon, contentDescription = null) },
+                            selected = currentScreen == screen,
+                            onClick = {
+                                currentScreen = screen
+                                scope.launch { drawerState.close() }
+                            },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                        )
+                    }
                 }
             }
         },

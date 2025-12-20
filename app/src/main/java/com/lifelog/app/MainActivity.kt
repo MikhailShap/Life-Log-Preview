@@ -1,12 +1,12 @@
 package com.lifelog.app
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity // Used for enableEdgeToEdge extension
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -47,6 +47,7 @@ val items = listOf(
 )
 
 const val recordVideoRoute = "record_video"
+const val mainRoute = "main_graph"
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -56,8 +57,6 @@ class MainActivity : AppCompatActivity() {
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // 1. Включаем Edge-to-Edge для прозрачного статус-бара
         enableEdgeToEdge()
 
         setContent {
@@ -69,68 +68,56 @@ class MainActivity : AppCompatActivity() {
             }
 
             LifeLogAppTheme(darkTheme = darkTheme) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    val navController = rememberNavController()
-                    
-                    Scaffold(
-                        bottomBar = {
-                            NavigationBar {
-                                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                                val currentDestination = navBackStackEntry?.destination
-                                items.forEach { screen ->
-                                    val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-                                    NavigationBarItem(
-                                        icon = { Icon(screen.icon, contentDescription = null) },
-                                        label = { Text(stringResource(screen.labelRes)) },
-                                        selected = selected,
-                                        onClick = {
-                                            navController.navigate(screen.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = true
-                                                }
-                                                launchSingleTop = true
-                                                restoreState = true
+                val navController = rememberNavController()
+                
+                Scaffold(
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                    bottomBar = {
+                        NavigationBar {
+                            val navBackStackEntry by navController.currentBackStackEntryAsState()
+                            val currentDestination = navBackStackEntry?.destination
+                            items.forEach { screen ->
+                                val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                                NavigationBarItem(
+                                    icon = { Icon(screen.icon, contentDescription = null) },
+                                    label = { Text(stringResource(screen.labelRes)) },
+                                    selected = selected,
+                                    onClick = {
+                                        navController.navigate(screen.route) {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
                                             }
-                                        },
-                                        colors = NavigationBarItemDefaults.colors(
-                                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                                            indicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-                                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    )
-                                }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                )
                             }
                         }
-                    ) { innerPadding ->
-                        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                            NavHost(
-                                navController = navController,
-                                startDestination = Screen.Log.route,
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                composable(Screen.Log.route) {
-                                    LogRootScreen(
-                                        onNavigateToRecord = { navController.navigate(recordVideoRoute) }
-                                    )
-                                }
-                                composable(Screen.Stats.route) { 
-                                    TrendsScreen() 
-                                }
-                                composable(Screen.Profile.route) { 
-                                    SettingsScreen() 
-                                }
-                                composable(recordVideoRoute) {
-                                    val videoViewModel: VideoNotesViewModel = hiltViewModel()
-                                    RecordVideoScreen(
-                                        viewModel = videoViewModel,
-                                        onVideoSaved = { navController.popBackStack() }
-                                    )
-                                }
+                    }
+                ) { innerPadding ->
+                    Box(modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                    ) {
+                        NavHost(
+                            navController = navController,
+                            startDestination = Screen.Log.route,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            composable(Screen.Log.route) {
+                                LogRootScreen(
+                                    onNavigateToRecord = { navController.navigate(recordVideoRoute) }
+                                )
+                            }
+                            composable(Screen.Stats.route) { TrendsScreen() }
+                            composable(Screen.Profile.route) { SettingsScreen() }
+                            composable(recordVideoRoute) {
+                                val videoViewModel: VideoNotesViewModel = hiltViewModel()
+                                RecordVideoScreen(
+                                    viewModel = videoViewModel,
+                                    onVideoSaved = { navController.popBackStack() }
+                                )
                             }
                         }
                     }

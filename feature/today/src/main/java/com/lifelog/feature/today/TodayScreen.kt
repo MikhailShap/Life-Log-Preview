@@ -34,7 +34,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -42,9 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.ui.R
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -116,10 +113,13 @@ fun TodayScreen(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground,
                     navigationIconContentColor = MaterialTheme.colorScheme.onBackground
-                )
+                ),
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                modifier = Modifier.statusBarsPadding()
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -149,14 +149,12 @@ fun TodayScreen(
                         onClick = { viewModel.showEndTimePicker(true) }
                     )
 
-                    // Duration Calculation
                     val durationMillis = uiState.sleepEndTime - uiState.sleepStartTime
-                    // Handle case where end time is next day (if negative diff)
                     val adjustedDuration = if (durationMillis < 0) durationMillis + TimeUnit.DAYS.toMillis(1) else durationMillis
                     
                     val hours = TimeUnit.MILLISECONDS.toHours(adjustedDuration)
                     val minutes = TimeUnit.MILLISECONDS.toMinutes(adjustedDuration) % 60
-                    val durationString = String.format("%d%s %02d%s", hours, "h", minutes, "m") // Localize h/m later if needed
+                    val durationString = String.format("%d%s %02d%s", hours, "h", minutes, "m") 
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -233,8 +231,6 @@ fun TodayScreen(
                 )
             }
 
-            // Stats section remain same...
-            // ... (I'll keep the rest as is for brevity, or include full file if needed)
              Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -301,9 +297,8 @@ fun TodayScreen(
 
 @Composable
 fun DateSelector() {
-    val currentLocale = LocalConfiguration.current.locales[0]
-    val date = remember(currentLocale) {
-        SimpleDateFormat("d MMMM", currentLocale).format(Date())
+    val date = remember(Locale.getDefault()) {
+        SimpleDateFormat("d MMMM", Locale.getDefault()).format(Date())
     }
     
     Card(
@@ -358,21 +353,17 @@ fun TimeInput(label: String, time: String, onClick: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        // Simulate OutlinedTextField appearance but clickable
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
                 .background(Color.Transparent)
-                .graphicsLayer {
-                    // Custom border drawing could be here, or use OutlinedTextField readOnly
-                }
         ) {
              OutlinedTextField(
                 value = time,
                 onValueChange = {},
                 readOnly = true,
-                enabled = false, // To prevent focus, clicks handled by parent Column
+                enabled = false, 
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -385,20 +376,12 @@ fun TimeInput(label: String, time: String, onClick: () -> Unit) {
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                     disabledTextColor = MaterialTheme.colorScheme.onSurface
-                ),
-                trailingIcon = {
-                    Text(
-                        text = "AM/PM", // Simplified, locale specific format handles this usually
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(end = 16.dp)
-                    )
-                }
+                )
             )
         }
     }
 }
 
-// ... QualityIcon and StatsCard remain same ...
 @Composable
 fun QualityIcon(icon: ImageVector, isSelected: Boolean, onClick: () -> Unit) {
     val scale by animateFloatAsState(
