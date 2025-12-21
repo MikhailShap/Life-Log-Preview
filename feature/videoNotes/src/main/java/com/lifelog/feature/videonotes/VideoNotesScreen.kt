@@ -1,6 +1,7 @@
 package com.lifelog.feature.videonotes
 
 import android.net.Uri
+import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -35,10 +36,22 @@ import java.util.*
 fun VideoNotesScreen(
     viewModel: VideoNotesViewModel = hiltViewModel(),
     onNavigateToRecord: () -> Unit,
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
+    selectedDate: Long,
+    onDateClick: () -> Unit
 ) {
     val notes by viewModel.videoNotes.collectAsState()
     var selectedVideo by remember { mutableStateOf<VideoNote?>(null) }
+
+    // Filter notes by selected date
+    val filteredNotes = remember(notes, selectedDate) {
+        val selectedCal = Calendar.getInstance().apply { timeInMillis = selectedDate }
+        notes.filter { note ->
+            val noteCal = Calendar.getInstance().apply { timeInMillis = note.createdAt.time }
+            noteCal.get(Calendar.YEAR) == selectedCal.get(Calendar.YEAR) &&
+            noteCal.get(Calendar.DAY_OF_YEAR) == selectedCal.get(Calendar.DAY_OF_YEAR)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -56,8 +69,11 @@ fun VideoNotesScreen(
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
-                )
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+                ),
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                modifier = Modifier.statusBarsPadding()
             )
         },
         floatingActionButton = {
@@ -70,14 +86,32 @@ fun VideoNotesScreen(
                 Icon(Icons.Default.Add, contentDescription = "Record New")
             }
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (notes.isEmpty()) {
+            val dateText = remember(selectedDate, Locale.getDefault()) {
+                try {
+                    SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date(selectedDate))
+                } catch (e: Exception) {
+                    ""
+                }
+            }
+
+            Text(
+                text = dateText.replaceFirstChar { it.uppercase() },
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable { onDateClick() }
+            )
+
+            if (filteredNotes.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(stringResource(id = R.string.no_video_notes), color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -88,12 +122,6 @@ fun VideoNotesScreen(
                     }
                 }
             } else {
-                Text(
-                    text = stringResource(id = R.string.todays_recordings),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(16.dp)
-                )
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 150.dp),
                     contentPadding = PaddingValues(16.dp),
@@ -101,7 +129,7 @@ fun VideoNotesScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(notes) { note ->
+                    items(filteredNotes) { note ->
                         VideoNoteGridItem(
                             note = note, 
                             onClick = { selectedVideo = note }
@@ -120,9 +148,10 @@ fun VideoNotesScreen(
     }
 }
 
+// ... VideoNoteGridItem and VideoPlayerDialog remain same ...
 @Composable
 fun VideoNoteGridItem(note: VideoNote, onClick: () -> Unit) {
-    val timeFormat = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
+    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     
     Card(
         modifier = Modifier
