@@ -20,7 +20,9 @@ data class TodayUiState(
     val sleepStartTime: Long = 0L, // Timestamp
     val sleepEndTime: Long = 0L, // Timestamp
     val showStartTimePicker: Boolean = false,
-    val showEndTimePicker: Boolean = false
+    val showEndTimePicker: Boolean = false,
+    val errorMessage: String? = null,
+    val isSaving: Boolean = false
 )
 
 @HiltViewModel
@@ -71,14 +73,28 @@ class TodayViewModel @Inject constructor(
 
     fun saveEntry() {
         viewModelScope.launch {
-            val currentState = _uiState.value
-            val sleep = Sleep(
-                startTime = currentState.sleepStartTime,
-                endTime = currentState.sleepEndTime,
-                qualityRating = currentState.sleepQuality,
-                notes = null
-            )
-            addSleepUseCase(sleep)
+            try {
+                _uiState.value = _uiState.value.copy(isSaving = true, errorMessage = null)
+                val currentState = _uiState.value
+                val sleep = Sleep(
+                    startTime = currentState.sleepStartTime,
+                    endTime = currentState.sleepEndTime,
+                    qualityRating = currentState.sleepQuality,
+                    notes = null
+                )
+                addSleepUseCase(sleep)
+                _uiState.value = _uiState.value.copy(isSaving = false)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to save sleep entry", e)
+                _uiState.value = _uiState.value.copy(
+                    isSaving = false,
+                    errorMessage = e.message ?: "Failed to save sleep entry"
+                )
+            }
         }
+    }
+
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(errorMessage = null)
     }
 }
