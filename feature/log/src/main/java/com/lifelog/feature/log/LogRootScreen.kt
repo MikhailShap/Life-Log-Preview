@@ -26,7 +26,7 @@ enum class LogSubScreen(
     MOOD(R.string.menu_mood, Icons.Default.Face),
     SLEEP(R.string.menu_sleep, Icons.Default.Bedtime),
     MEDS(R.string.menu_meds, Icons.Default.Medication),
-    SIDE_EFFECTS(R.string.menu_side_effects, Icons.Default.Warning),
+    SIDE_EFFECTS(R.string.menu_side_effects, Icons.Default.Close),
     VIDEO_NOTE(R.string.menu_video_note, Icons.Default.Videocam)
 }
 
