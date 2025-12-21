@@ -6,7 +6,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -17,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -33,6 +31,11 @@ import com.lifelog.feature.videonotes.RecordVideoScreen
 import com.lifelog.feature.videonotes.VideoNotesViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import android.app.DatePickerDialog
+import android.widget.DatePicker
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.ui.platform.LocalContext
+import java.util.Calendar
 
 sealed class Screen(val route: String, val labelRes: Int, val icon: ImageVector) {
     object Log : Screen("log", R.string.nav_log, Icons.Default.RadioButtonChecked)
@@ -47,7 +50,6 @@ val items = listOf(
 )
 
 const val recordVideoRoute = "record_video"
-const val mainRoute = "main_graph"
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -66,58 +68,96 @@ class MainActivity : AppCompatActivity() {
                 ThemeMode.DARK -> true
                 ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
             }
+            
+            val logSubScreenName by viewModel.currentLogSubScreen.collectAsState()
 
             LifeLogAppTheme(darkTheme = darkTheme) {
-                val navController = rememberNavController()
+                var selectedDateInMillis by remember { mutableStateOf(System.currentTimeMillis()) }
+                val context = LocalContext.current
                 
-                Scaffold(
-                    contentWindowInsets = WindowInsets(0, 0, 0, 0),
-                    bottomBar = {
-                        NavigationBar {
-                            val navBackStackEntry by navController.currentBackStackEntryAsState()
-                            val currentDestination = navBackStackEntry?.destination
-                            items.forEach { screen ->
-                                val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-                                NavigationBarItem(
-                                    icon = { Icon(screen.icon, contentDescription = null) },
-                                    label = { Text(stringResource(screen.labelRes)) },
-                                    selected = selected,
-                                    onClick = {
-                                        navController.navigate(screen.route) {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
+                val datePickerDialog = remember {
+                    val calendar = Calendar.getInstance()
+                    DatePickerDialog(
+                        context,
+                        { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
+                            val newCalendar = Calendar.getInstance()
+                            newCalendar.set(year, month, dayOfMonth)
+                            selectedDateInMillis = newCalendar.timeInMillis
+                        },
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH)
+                    )
+                }
+
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    val navController = rememberNavController()
+                    
+                    Scaffold(
+                        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                        bottomBar = {
+                            NavigationBar {
+                                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                                val currentDestination = navBackStackEntry?.destination
+                                items.forEach { screen ->
+                                    val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                                    NavigationBarItem(
+                                        icon = { Icon(screen.icon, contentDescription = null) },
+                                        label = { Text(stringResource(screen.labelRes)) },
+                                        selected = selected,
+                                        onClick = {
+                                            navController.navigate(screen.route) {
+                                                popUpTo(navController.graph.id) {
+                                                    saveState = true
+                                                }
+                                                launchSingleTop = true
+                                                restoreState = true
                                             }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
-                                    }
-                                )
+                                        },
+                                        colors = NavigationBarItemDefaults.colors(
+                                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                                            indicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    )
+                                }
                             }
                         }
-                    }
-                ) { innerPadding ->
-                    Box(modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = innerPadding.calculateBottomPadding())
-                    ) {
-                        NavHost(
-                            navController = navController,
-                            startDestination = Screen.Log.route,
-                            modifier = Modifier.fillMaxSize()
+                    ) { innerPadding ->
+                        Box(modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = innerPadding.calculateBottomPadding())
                         ) {
-                            composable(Screen.Log.route) {
-                                LogRootScreen(
-                                    onNavigateToRecord = { navController.navigate(recordVideoRoute) }
-                                )
-                            }
-                            composable(Screen.Stats.route) { TrendsScreen() }
-                            composable(Screen.Profile.route) { SettingsScreen() }
-                            composable(recordVideoRoute) {
-                                val videoViewModel: VideoNotesViewModel = hiltViewModel()
-                                RecordVideoScreen(
-                                    viewModel = videoViewModel,
-                                    onVideoSaved = { navController.popBackStack() }
-                                )
+                            NavHost(
+                                navController = navController,
+                                startDestination = Screen.Log.route,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                composable(Screen.Log.route) {
+                                    LogRootScreen(
+                                        currentSubScreenName = logSubScreenName,
+                                        onSubScreenChange = { viewModel.setLogSubScreen(it) },
+                                        onNavigateToRecord = { navController.navigate(recordVideoRoute) },
+                                        selectedDate = selectedDateInMillis,
+                                        onDateClick = { datePickerDialog.show() }
+                                    )
+                                }
+                                composable(Screen.Stats.route) { TrendsScreen() }
+                                composable(Screen.Profile.route) { SettingsScreen() }
+                                composable(recordVideoRoute) {
+                                    val videoViewModel: VideoNotesViewModel = hiltViewModel()
+                                    RecordVideoScreen(
+                                        viewModel = videoViewModel,
+                                        onVideoSaved = { 
+                                            navController.popBackStack() 
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

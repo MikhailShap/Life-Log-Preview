@@ -1,5 +1,6 @@
 package com.lifelog.feature.sideeffects
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,10 +27,20 @@ import java.util.Locale
 @Composable
 fun SideEffectsScreen(
     viewModel: SideEffectsViewModel = hiltViewModel(),
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
+    selectedDate: Long,
+    onDateClick: () -> Unit
 ) {
     val sideEffects by viewModel.sideEffects.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
+
+    val dateText = remember(selectedDate, Locale.getDefault()) {
+        try {
+            SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date(selectedDate))
+        } catch (e: Exception) {
+            ""
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -72,16 +83,19 @@ fun SideEffectsScreen(
                 .padding(padding)
         ) {
             Text(
-                text = SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date()),
+                text = dateText.replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable { onDateClick() }
             )
             
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(sideEffects) { sideEffect ->
+                    // TODO: Filter side effects by date if needed. Currently shows all history.
                     SideEffectCard(sideEffect = sideEffect, onDelete = {
                         viewModel.deleteSideEffect(sideEffect)
                     })
@@ -93,7 +107,9 @@ fun SideEffectsScreen(
             AddSideEffectDialog(
                 onDismiss = { showDialog = false },
                 onConfirm = {
-                    viewModel.addSideEffect(it)
+                    // Save with selected date
+                    val effectWithDate = it.copy(date = selectedDate)
+                    viewModel.addSideEffect(effectWithDate)
                     showDialog = false
                 }
             )
@@ -101,6 +117,7 @@ fun SideEffectsScreen(
     }
 }
 
+// ... SideEffectCard and AddSideEffectDialog remain same ...
 @Composable
 fun SideEffectCard(sideEffect: SideEffect, onDelete: () -> Unit) {
     var isChecked by remember { mutableStateOf(true) } // Assume checked if added
@@ -182,7 +199,7 @@ fun AddSideEffectDialog(onDismiss: () -> Unit, onConfirm: (SideEffect) -> Unit) 
                         val newSideEffect = SideEffect(
                             name = name,
                             frequency = frequency,
-                            date = System.currentTimeMillis()
+                            date = System.currentTimeMillis() // Placeholder, updated in parent
                         )
                         onConfirm(newSideEffect)
                     }

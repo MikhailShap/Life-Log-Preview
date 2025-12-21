@@ -18,21 +18,22 @@ import com.lifelog.feature.today.TodayScreen
 import com.lifelog.feature.videonotes.VideoNotesScreen
 import kotlinx.coroutines.launch
 
-enum class LogSubScreen(val labelRes: Int, val icon: ImageVector) {
-    MOOD(R.string.menu_mood, Icons.Default.SentimentSatisfied),
-    SLEEP(R.string.menu_sleep, Icons.Default.Bedtime),
-    MEDS(R.string.menu_meds, Icons.Default.Medication),
-    SIDE_EFFECTS(R.string.menu_side_effects, Icons.Default.Healing),
-    VIDEO_NOTE(R.string.menu_video_note, Icons.Default.Videocam)
-}
-
 @Composable
 fun LogRootScreen(
-    onNavigateToRecord: () -> Unit = {}
+    currentSubScreenName: String = "MOOD",
+    onSubScreenChange: (String) -> Unit = {},
+    onNavigateToRecord: () -> Unit = {},
+    selectedDate: Long,
+    onDateClick: () -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var currentScreen by remember { mutableStateOf(LogSubScreen.MOOD) }
+    
+    val currentScreen = try {
+        LogSubScreen.valueOf(currentSubScreenName)
+    } catch (e: Exception) {
+        LogSubScreen.MOOD
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -60,7 +61,7 @@ fun LogRootScreen(
                             icon = { Icon(screen.icon, contentDescription = null) },
                             selected = currentScreen == screen,
                             onClick = {
-                                currentScreen = screen
+                                onSubScreenChange(screen.name)
                                 scope.launch { drawerState.close() }
                             },
                             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
@@ -76,11 +77,33 @@ fun LogRootScreen(
 
             Box(modifier = Modifier.fillMaxSize()) {
                 when (currentScreen) {
-                    LogSubScreen.MOOD -> LogScreen(onNavigateToRecord = onNavigateToRecord, onMenuClick = onMenuClick)
-                    LogSubScreen.SLEEP -> TodayScreen(onMenuClick = onMenuClick)
-                    LogSubScreen.MEDS -> MedsScreen(onMenuClick = onMenuClick)
-                    LogSubScreen.SIDE_EFFECTS -> SideEffectsScreen(onMenuClick = onMenuClick)
-                    LogSubScreen.VIDEO_NOTE -> VideoNotesScreen(onNavigateToRecord = onNavigateToRecord, onMenuClick = onMenuClick)
+                    LogSubScreen.MOOD -> LogScreen(
+                        onNavigateToRecord = onNavigateToRecord, 
+                        onMenuClick = onMenuClick,
+                        selectedDate = selectedDate,
+                        onDateClick = onDateClick
+                    )
+                    LogSubScreen.SLEEP -> TodayScreen(
+                        onMenuClick = onMenuClick,
+                        selectedDate = selectedDate,
+                        onDateClick = onDateClick
+                    )
+                    LogSubScreen.MEDS -> MedsScreen(
+                        onMenuClick = onMenuClick,
+                        selectedDate = selectedDate,
+                        onDateClick = onDateClick
+                    )
+                    LogSubScreen.SIDE_EFFECTS -> SideEffectsScreen(
+                        onMenuClick = onMenuClick,
+                        selectedDate = selectedDate,
+                        onDateClick = onDateClick
+                    )
+                    LogSubScreen.VIDEO_NOTE -> VideoNotesScreen(
+                        onNavigateToRecord = onNavigateToRecord, 
+                        onMenuClick = onMenuClick,
+                        selectedDate = selectedDate,
+                        onDateClick = onDateClick
+                    )
                 }
             }
         }

@@ -41,18 +41,30 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.ui.R
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodayScreen(
     viewModel: TodayViewModel = hiltViewModel(),
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
+    selectedDate: Long,
+    onDateClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
     val context = LocalContext.current
+    
+    val dateText = remember(selectedDate, Locale.getDefault()) {
+        try {
+            SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date(selectedDate))
+        } catch (e: Exception) {
+            ""
+        }
+    }
 
     val startTimeCalendar = Calendar.getInstance().apply { timeInMillis = uiState.sleepStartTime }
     val endTimeCalendar = Calendar.getInstance().apply { timeInMillis = uiState.sleepEndTime }
@@ -69,7 +81,7 @@ fun TodayScreen(
             },
             startTimeCalendar.get(Calendar.HOUR_OF_DAY),
             startTimeCalendar.get(Calendar.MINUTE),
-            true // 24h format
+            true 
         ).apply {
             setOnCancelListener { viewModel.showStartTimePicker(false) }
             show()
@@ -110,16 +122,13 @@ fun TodayScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
-                ),
-                windowInsets = WindowInsets(0, 0, 0, 0),
-                modifier = Modifier.statusBarsPadding()
+                    containerColor = Color.Transparent
+                )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        modifier = Modifier.statusBarsPadding()
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -129,7 +138,7 @@ fun TodayScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            DateSelector()
+            DateSelector(dateText = dateText, onClick = onDateClick)
 
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -215,7 +224,7 @@ fun TodayScreen(
             }
 
             Button(
-                onClick = { viewModel.saveEntry() },
+                onClick = { viewModel.saveEntry(selectedDate) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -230,81 +239,16 @@ fun TodayScreen(
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
             }
-
-             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(id = R.string.stats_title),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(4.dp)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.stats_week),
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.stats_month),
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            }
-
-            Card(
-                modifier = Modifier.fillMaxWidth().height(200.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                     Text(stringResource(id = R.string.stats_chart_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                 }
-            }
-            
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                StatsCard(
-                    title = stringResource(id = R.string.stats_avg_duration),
-                    value = "7h 35m",
-                    modifier = Modifier.weight(1f)
-                )
-                StatsCard(
-                    title = stringResource(id = R.string.stats_avg_quality),
-                    value = stringResource(id = R.string.quality_good),
-                    icon = Icons.Default.SentimentSatisfied,
-                    modifier = Modifier.weight(1f)
-                )
-            }
         }
     }
 }
 
 @Composable
-fun DateSelector() {
-    val date = remember(Locale.getDefault()) {
-        SimpleDateFormat("d MMMM", Locale.getDefault()).format(Date())
-    }
-    
+fun DateSelector(dateText: String, onClick: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
     ) {
         Row(
             modifier = Modifier
@@ -330,7 +274,7 @@ fun DateSelector() {
                
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = stringResource(id = R.string.date_today_format, date),
+                    text = dateText.replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -344,6 +288,7 @@ fun DateSelector() {
     }
 }
 
+// ... TimeInput and QualityIcon remain same ...
 @Composable
 fun TimeInput(label: String, time: String, onClick: () -> Unit) {
     Column(modifier = Modifier.clickable(onClick = onClick)) {
@@ -376,7 +321,14 @@ fun TimeInput(label: String, time: String, onClick: () -> Unit) {
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                     disabledTextColor = MaterialTheme.colorScheme.onSurface
-                )
+                ),
+                trailingIcon = {
+                    Text(
+                        text = "AM/PM",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(end = 16.dp)
+                    )
+                }
             )
         }
     }
@@ -396,9 +348,6 @@ fun QualityIcon(icon: ImageVector, isSelected: Boolean, onClick: () -> Unit) {
         label = "containerColor"
     )
     
-    val gradientColors = listOf(Color(0xFF42A5F5), Color(0xFF26C6DA))
-    val unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-
     Box(
         modifier = Modifier
             .size(48.dp)
@@ -412,31 +361,13 @@ fun QualityIcon(icon: ImageVector, isSelected: Boolean, onClick: () -> Unit) {
             ),
         contentAlignment = Alignment.Center
     ) {
-        if (isSelected) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(32.dp)
-                    .graphicsLayer(alpha = 0.99f)
-                    .drawWithCache {
-                        onDrawWithContent {
-                            drawContent()
-                            drawRect(
-                                brush = Brush.linearGradient(gradientColors),
-                                blendMode = BlendMode.SrcIn
-                            )
-                        }
-                    }
-            )
-        } else {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = unselectedColor,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+        val tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(32.dp)
+        )
     }
 }
 

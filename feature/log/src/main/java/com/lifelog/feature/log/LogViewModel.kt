@@ -47,11 +47,11 @@ class LogViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(notes = notes)
     }
 
-    fun saveEntry() {
+    fun saveEntry(dateInMillis: Long) {
         viewModelScope.launch {
             val currentState = _uiState.value
             val mood = Mood(
-                timestamp = System.currentTimeMillis(),
+                timestamp = dateInMillis,
                 rating = currentState.mood,
                 energy = (currentState.energy * 10).toInt(),
                 stress = (currentState.stress * 10).toInt(),

@@ -36,22 +36,24 @@ import com.lifelog.core.ui.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @Composable
 fun LogScreen(
     viewModel: LogViewModel = hiltViewModel(),
     onNavigateToRecord: () -> Unit,
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
+    selectedDate: Long,
+    onDateClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
     
-    val fallbackToday = stringResource(id = R.string.nav_log)
-    val dateText = remember(Locale.getDefault()) {
+    val dateText = remember(selectedDate, Locale.getDefault()) {
         try {
-            SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date())
+            SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date(selectedDate))
         } catch (e: Exception) {
-            fallbackToday
+            ""
         }
     }
 
@@ -75,7 +77,8 @@ fun LogScreen(
             Text(
                 text = dateText.replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.clickable { onDateClick() } // Make date clickable
             )
         }
 
@@ -166,7 +169,7 @@ fun LogScreen(
 
             // Save Button
             Button(
-                onClick = { viewModel.saveEntry() },
+                onClick = { viewModel.saveEntry(selectedDate) }, // Pass selected date
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
@@ -259,15 +262,29 @@ fun MoodItem(icon: ImageVector, label: String, isSelected: Boolean, onClick: () 
 @Composable
 fun SliderGroup(label: String, value: Float, onValueChange: (Float) -> Unit) {
     Column {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "${(value * 10).roundToInt()}",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
         Slider(
-            value = value,
-            onValueChange = onValueChange,
-            valueRange = 0f..1f,
+            value = value * 10,
+            onValueChange = { newValue ->
+                onValueChange(newValue / 10f)
+            },
+            valueRange = 0f..10f,
+            steps = 9, 
             colors = SliderDefaults.colors(
                 thumbColor = MaterialTheme.colorScheme.primary,
                 activeTrackColor = MaterialTheme.colorScheme.primary,

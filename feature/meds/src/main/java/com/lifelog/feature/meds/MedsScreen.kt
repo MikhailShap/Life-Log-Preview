@@ -1,5 +1,6 @@
 package com.lifelog.feature.meds
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,10 +27,20 @@ import java.util.Locale
 @Composable
 fun MedsScreen(
     viewModel: MedsViewModel = hiltViewModel(),
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
+    selectedDate: Long,
+    onDateClick: () -> Unit
 ) {
     val meds by viewModel.meds.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
+
+    val dateText = remember(selectedDate, Locale.getDefault()) {
+        try {
+            SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date(selectedDate))
+        } catch (e: Exception) {
+            ""
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -50,7 +61,8 @@ fun MedsScreen(
                     titleContentColor = MaterialTheme.colorScheme.onBackground,
                     navigationIconContentColor = MaterialTheme.colorScheme.onBackground
                 ),
-                windowInsets = WindowInsets.statusBars
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                modifier = Modifier.statusBarsPadding()
             )
         },
         floatingActionButton = {
@@ -64,17 +76,19 @@ fun MedsScreen(
         },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
-    ) { paddingValues ->
+    ) { padding ->
         Column(
             modifier = Modifier
-                .padding(paddingValues)
                 .fillMaxSize()
+                .padding(padding)
         ) {
             Text(
-                text = SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date()),
+                text = dateText.replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable { onDateClick() }
             )
             
             LazyColumn(
@@ -88,7 +102,11 @@ fun MedsScreen(
             }
             
             Button(
-                onClick = { /* TODO: Implement save log */ },
+                onClick = { 
+                    // TODO: Implement save log for specific date. Currently Meds are static list.
+                    // If we track daily intake, we need a separate entity MedLog(medId, date, status).
+                    // For now, this button is a placeholder or could save "I took all meds for today".
+                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
@@ -118,6 +136,7 @@ fun MedsScreen(
     }
 }
 
+// ... MedCard and AddMedDialog remain same ...
 @Composable
 fun MedCard(med: Med, onDelete: () -> Unit) {
     var isChecked by remember { mutableStateOf(false) }
