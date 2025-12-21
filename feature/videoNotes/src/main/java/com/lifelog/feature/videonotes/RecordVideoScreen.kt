@@ -1,12 +1,15 @@
+@file:OptIn(com.google.accompanist.permissions.ExperimentalPermissionsApi::class)
+
 package com.lifelog.feature.videonotes
 
 import android.Manifest
 import android.net.Uri
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.*
+import androidx.camera.view.CameraController
+import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
+import androidx.camera.view.video.AudioConfig
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -30,7 +33,6 @@ import com.lifelog.core.ui.R
 import java.io.File
 import java.util.concurrent.Executor
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RecordVideoScreen(
     viewModel: VideoNotesViewModel,
@@ -39,17 +41,16 @@ fun RecordVideoScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    var recording: Recording? by remember { mutableStateOf(null) }
     var isRecording by remember { mutableStateOf(false) }
     var previewUri by remember { mutableStateOf<Uri?>(null) }
     var recordedDuration by remember { mutableLongStateOf(0L) }
-    var cameraSelector by remember { mutableStateOf(CameraSelector.DEFAULT_FRONT_CAMERA) }
+    var currentRecording by remember { mutableStateOf<Recording?>(null) }
 
-    val videoCapture: VideoCapture<Recorder> = remember {
-        val recorder = Recorder.Builder()
-            .setQualitySelector(QualitySelector.from(Quality.HD))
-            .build()
-        VideoCapture.withOutput(recorder)
+    val cameraController = remember { 
+        LifecycleCameraController(context).apply {
+            setEnabledUseCases(CameraController.VIDEO_CAPTURE)
+            videoCaptureQualitySelector = QualitySelector.from(Quality.HD)
+        }
     }
 
     val permissionsState = rememberMultiplePermissionsState(
@@ -76,198 +77,98 @@ fun RecordVideoScreen(
         return
     }
 
-    Scaffold(
-        containerColor = Color.Black
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            // Circular Camera Preview or Video Player
+    Scaffold(containerColor = Color.Black) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            // Circular Camera Preview or Player
             Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(350.dp)
-                    .clip(CircleShape)
-                    .background(Color.DarkGray)
+                modifier = Modifier.align(Alignment.Center).size(350.dp).clip(CircleShape).background(Color.DarkGray)
             ) {
                 if (previewUri == null) {
-                    CameraPreview(
-                        modifier = Modifier.fillMaxSize(),
-                        cameraSelector = cameraSelector,
-                        videoCapture = videoCapture
+                    AndroidView(
+                        factory = { ctx ->
+                            PreviewView(ctx).apply {
+                                controller = cameraController
+                                cameraController.bindToLifecycle(lifecycleOwner)
+                            }
+                        },
+                        modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    VideoPlayer(
-                        modifier = Modifier.fillMaxSize(),
-                        uri = previewUri!!
-                    )
+                    VideoPlayer(modifier = Modifier.fillMaxSize(), uri = previewUri!!)
                 }
             }
 
             // Controls
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 64.dp)
-            ) {
+            Box(modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 64.dp)) {
                 if (previewUri == null) {
-                    // Recording Controls
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Camera Switch Button
+                        // Switch Camera - Allowed during recording
                         IconButton(
                             onClick = {
-                                cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
-                                    CameraSelector.DEFAULT_FRONT_CAMERA
-                                } else {
-                                    CameraSelector.DEFAULT_BACK_CAMERA
-                                }
+                                cameraController.cameraSelector = if (cameraController.cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) 
+                                    CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
                             }
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .background(Color.DarkGray.copy(alpha = 0.5f), CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(Icons.Default.FlipCameraAndroid, contentDescription = "Switch Camera", tint = Color.White)
+                            Box(modifier = Modifier.size(48.dp).background(Color.DarkGray.copy(alpha = 0.5f), CircleShape), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.FlipCameraAndroid, contentDescription = "Switch", tint = Color.White)
                             }
                         }
 
                         FloatingActionButton(
                             onClick = {
                                 if (isRecording) {
-                                    recording?.stop()
-                                    recording = null
-                                    isRecording = false
+                                    currentRecording?.stop()
                                 } else {
-                                    val mainExecutor: Executor = ContextCompat.getMainExecutor(context)
+                                    val mainExecutor = ContextCompat.getMainExecutor(context)
+                                    val file = File(context.filesDir, "videos/video_${System.currentTimeMillis()}.mp4").apply { parentFile?.mkdirs() }
                                     
-                                    val outputDir = File(context.filesDir, "videos").apply { mkdirs() }
-                                    val fileName = "video_note_${System.currentTimeMillis()}.mp4"
-                                    val file = File(outputDir, fileName)
-                                    
-                                    val fileOutputOptions = FileOutputOptions.Builder(file).build()
-
-                                    recording = videoCapture.output
-                                        .prepareRecording(context, fileOutputOptions)
-                                        .withAudioEnabled()
-                                        .start(mainExecutor) { recordEvent ->
-                                            when (recordEvent) {
-                                                is VideoRecordEvent.Start -> {
-                                                    isRecording = true
-                                                }
-                                                is VideoRecordEvent.Finalize -> {
-                                                    isRecording = false
-                                                    if (!recordEvent.hasError()) {
-                                                        previewUri = Uri.fromFile(file)
-                                                        recordedDuration = recordEvent.recordingStats.recordedDurationNanos / 1_000_000
-                                                    } else {
-                                                        file.delete()
-                                                    }
+                                    currentRecording = cameraController.startRecording(
+                                        FileOutputOptions.Builder(file).build(),
+                                        AudioConfig.create(true),
+                                        mainExecutor
+                                    ) { event ->
+                                        when (event) {
+                                            is VideoRecordEvent.Start -> isRecording = true
+                                            is VideoRecordEvent.Finalize -> {
+                                                // Check if it's a real end or just a camera switch pause (not supported by CameraX yet for gapless)
+                                                // If the recording stops, we reset the UI state.
+                                                isRecording = false
+                                                if (!event.hasError()) {
+                                                    previewUri = Uri.fromFile(file)
+                                                    recordedDuration = event.recordingStats.recordedDurationNanos / 1_000_000
                                                 }
                                             }
                                         }
+                                    }
                                 }
                             },
                             containerColor = if (isRecording) Color.Red else Color(0xFF9575CD),
                             shape = CircleShape,
                             modifier = Modifier.size(84.dp)
                         ) {
-                            Icon(
-                                if (isRecording) Icons.Default.Stop else Icons.Default.FiberManualRecord,
-                                contentDescription = if (isRecording) "Stop" else "Record",
-                                modifier = Modifier.size(42.dp),
-                                tint = Color.White
-                            )
+                            Icon(if (isRecording) Icons.Default.Stop else Icons.Default.FiberManualRecord, null, modifier = Modifier.size(42.dp), tint = Color.White)
                         }
-
-                        Spacer(modifier = Modifier.width(48.dp))
+                        
+                        Spacer(Modifier.width(48.dp))
                     }
                 } else {
-                    // Preview Controls
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Button(
-                            onClick = { 
-                                previewUri?.path?.let { File(it).delete() }
-                                previewUri = null 
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
-                        ) {
-                            Icon(Icons.Default.Refresh, contentDescription = "Retake")
-                            Spacer(modifier = Modifier.width(8.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                        Button(onClick = { previewUri = null }, colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)) {
                             Text(stringResource(id = R.string.retake))
                         }
-
-                        FloatingActionButton(
-                            onClick = {
-                                previewUri?.let { uri ->
-                                    viewModel.saveVideoNote(uri, recordedDuration)
-                                    onVideoSaved()
-                                }
-                            },
-                            containerColor = Color(0xFF4CAF50), // Green
-                            shape = CircleShape
-                        ) {
-                            Icon(Icons.Default.Check, contentDescription = "Done", tint = Color.White)
+                        FloatingActionButton(onClick = {
+                            previewUri?.let { viewModel.saveVideoNote(it, recordedDuration) }
+                            onVideoSaved()
+                        }, containerColor = Color(0xFF4CAF50), shape = CircleShape) {
+                            Icon(Icons.Default.Check, null, tint = Color.White)
                         }
                     }
                 }
             }
-            
-            if (isRecording) {
-                 Text(
-                    text = stringResource(id = R.string.recording_label),
-                    color = Color.Red,
-                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 32.dp),
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
         }
     }
-}
-
-@Composable
-fun CameraPreview(
-    modifier: Modifier = Modifier,
-    cameraSelector: CameraSelector,
-    videoCapture: VideoCapture<Recorder>
-) {
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val previewView = remember { PreviewView(context) }
-
-    LaunchedEffect(cameraSelector) {
-        val cameraProvider = ProcessCameraProvider.getInstance(context).get()
-        val preview = Preview.Builder().build().also {
-            it.setSurfaceProvider(previewView.surfaceProvider)
-        }
-
-        try {
-            cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
-                lifecycleOwner,
-                cameraSelector,
-                preview,
-                videoCapture
-            )
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    AndroidView(
-        factory = { previewView },
-        modifier = modifier
-    )
 }
