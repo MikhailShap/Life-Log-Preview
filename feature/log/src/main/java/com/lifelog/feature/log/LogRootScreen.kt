@@ -23,7 +23,7 @@ enum class LogSubScreen(
     @StringRes val labelRes: Int,
     val icon: ImageVector
 ) {
-    MOOD(R.string.menu_mood, Icons.Default.Face),
+    MOOD(R.string.menu_mood, Icons.Default.SentimentSatisfied),
     SLEEP(R.string.menu_sleep, Icons.Default.Bedtime),
     MEDS(R.string.menu_meds, Icons.Default.Medication),
     SIDE_EFFECTS(R.string.menu_side_effects, Icons.Default.Close),
