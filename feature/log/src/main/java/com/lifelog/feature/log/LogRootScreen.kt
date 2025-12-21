@@ -1,5 +1,6 @@
 package com.lifelog.feature.log
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -17,6 +18,17 @@ import com.lifelog.feature.sideeffects.SideEffectsScreen
 import com.lifelog.feature.today.TodayScreen
 import com.lifelog.feature.videonotes.VideoNotesScreen
 import kotlinx.coroutines.launch
+
+enum class LogSubScreen(
+    @StringRes val labelRes: Int,
+    val icon: ImageVector
+) {
+    MOOD(R.string.menu_mood, Icons.Default.SentimentSatisfied),
+    SLEEP(R.string.menu_sleep, Icons.Default.Bedtime),
+    MEDS(R.string.menu_meds, Icons.Default.Medication),
+    SIDE_EFFECTS(R.string.menu_side_effects, Icons.Default.Healing),
+    VIDEO_NOTE(R.string.menu_video_note, Icons.Default.Videocam)
+}
 
 @Composable
 fun LogRootScreen(
@@ -55,7 +67,7 @@ fun LogRootScreen(
                         )
                     }
                     HorizontalDivider()
-                    LogSubScreen.values().forEach { screen ->
+                    LogSubScreen.entries.forEach { screen ->
                         NavigationDrawerItem(
                             label = { Text(stringResource(screen.labelRes)) },
                             icon = { Icon(screen.icon, contentDescription = null) },
