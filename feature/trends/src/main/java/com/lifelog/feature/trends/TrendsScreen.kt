@@ -32,97 +32,89 @@ fun TrendsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = R.string.trends_title),
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                    )
-                },
-                actions = {
-                    TimeRangeSelector(
-                        selectedRange = uiState.timeRange,
-                        onRangeSelected = { viewModel.setTimeRange(it) },
-                        modifier = Modifier.padding(end = 16.dp)
-                    )
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
-                ),
-                windowInsets = WindowInsets(0, 0, 0, 0),
-                modifier = Modifier.statusBarsPadding()
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+    // Убрал Scaffold и фон MaterialTheme, чтобы был виден градиент
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .padding(16.dp)
+            .verticalScroll(scrollState),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        // Header
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Summary Section
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                SummaryCard(
-                    title = stringResource(id = R.string.avg_mood),
-                    value = uiState.averageMood,
-                    modifier = Modifier.weight(1f)
+            Text(
+                text = stringResource(id = R.string.trends_title),
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            TimeRangeSelector(
+                selectedRange = uiState.timeRange,
+                onRangeSelected = { viewModel.setTimeRange(it) }
+            )
+        }
+
+        // Summary Section
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SummaryCard(
+                title = stringResource(id = R.string.avg_mood),
+                value = uiState.averageMood,
+                modifier = Modifier.weight(1f)
+            )
+            SummaryCard(
+                title = stringResource(id = R.string.avg_sleep),
+                value = uiState.averageSleep,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        // Mood Chart
+        StatsCard(title = stringResource(id = R.string.mood_dynamics)) {
+            if (uiState.moodData.isNotEmpty()) {
+                MoodChart(data = uiState.moodData)
+            } else {
+                EmptyState(stringResource(id = R.string.no_mood_data))
+            }
+        }
+
+        // Sleep Chart
+        StatsCard(title = stringResource(id = R.string.sleep_duration_title)) {
+            if (uiState.sleepData.isNotEmpty()) {
+                SleepChart(data = uiState.sleepData)
+            } else {
+                EmptyState(stringResource(id = R.string.no_sleep_data))
+            }
+        }
+
+        // Energy Bar Chart
+        StatsCard(title = stringResource(id = R.string.energy_levels)) {
+            if (uiState.moodData.isNotEmpty()) {
+                BarChart(
+                    data = uiState.moodData.map { it.energy.toFloat() },
+                    color = Color(0xFFFFB74D), // Orange
+                    maxVal = 10f // Energy is 0-10
                 )
-                SummaryCard(
-                    title = stringResource(id = R.string.avg_sleep),
-                    value = uiState.averageSleep,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            // Mood Chart
-            StatsCard(title = stringResource(id = R.string.mood_dynamics)) {
-                if (uiState.moodData.isNotEmpty()) {
-                    MoodChart(data = uiState.moodData)
-                } else {
-                    EmptyState(stringResource(id = R.string.no_mood_data))
-                }
-            }
-
-            // Sleep Chart
-            StatsCard(title = stringResource(id = R.string.sleep_duration_title)) {
-                if (uiState.sleepData.isNotEmpty()) {
-                    SleepChart(data = uiState.sleepData)
-                } else {
-                    EmptyState(stringResource(id = R.string.no_sleep_data))
-                }
-            }
-
-            // Energy Bar Chart
-            StatsCard(title = stringResource(id = R.string.energy_levels)) {
-                if (uiState.moodData.isNotEmpty()) {
-                    BarChart(
-                        data = uiState.moodData.map { it.energy.toFloat() },
-                        color = Color(0xFFFFB74D), // Orange
-                        maxVal = 10f // Energy is 0-10
-                    )
-                } else {
-                    EmptyState(stringResource(id = R.string.no_energy_data))
-                }
+            } else {
+                EmptyState(stringResource(id = R.string.no_energy_data))
             }
         }
     }
 }
 
+// ... Остальные функции остаются без изменений, но используем полупрозрачные карточки для стиля
 @Composable
 fun SummaryCard(title: String, value: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        // Полупрозрачный фон карточки для эффекта "стекла"
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
@@ -152,7 +144,7 @@ fun TimeRangeSelector(
 ) {
     Row(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
             .padding(4.dp)
     ) {
         TimeRange.values().forEach { range ->
@@ -183,7 +175,7 @@ fun TimeRangeSelector(
 @Composable
 fun StatsCard(title: String, content: @Composable () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)), // Более прозрачные для графиков
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -260,7 +252,7 @@ fun MoodChart(data: List<Mood>) {
         drawPath(
             path = fillPath,
             brush = Brush.verticalGradient(
-                colors = listOf(primaryColor.copy(alpha = 0.3f), Color.Transparent)
+                colors = listOf(primaryColor.copy(alpha = 0.5f), Color.Transparent) // Более насыщенный градиент для контраста с темным фоном
             )
         )
     }

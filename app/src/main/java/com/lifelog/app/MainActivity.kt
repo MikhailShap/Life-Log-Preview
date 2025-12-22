@@ -6,6 +6,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -13,27 +14,30 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.lifelog.core.domain.model.ThemeMode
 import com.lifelog.core.ui.theme.LifeLogAppTheme
+import com.lifelog.core.ui.components.AppBackground
 import com.lifelog.feature.log.LogRootScreen
 import com.lifelog.feature.settings.SettingsScreen
 import com.lifelog.feature.trends.TrendsScreen
 import dagger.hilt.android.AndroidEntryPoint
 import com.lifelog.core.ui.R
 import com.lifelog.feature.videonotes.RecordVideoScreen
+import com.lifelog.feature.videonotes.VideoNotesScreen
 import com.lifelog.feature.videonotes.VideoNotesViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import android.app.DatePickerDialog
 import android.widget.DatePicker
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.platform.LocalContext
 import java.util.Calendar
 
@@ -90,16 +94,19 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
 
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
+                // Используем AppBackground вместо простого Surface
+                AppBackground {
                     val navController = rememberNavController()
                     
                     Scaffold(
+                        // Делаем фон Scaffold прозрачным, чтобы видеть градиент
+                        containerColor = Color.Transparent,
                         contentWindowInsets = WindowInsets(0, 0, 0, 0),
                         bottomBar = {
-                            NavigationBar {
+                            NavigationBar(
+                                // Делаем навбар полупрозрачным, чтобы он вписывался
+                                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                            ) {
                                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                                 val currentDestination = navBackStackEntry?.destination
                                 items.forEach { screen ->
@@ -110,7 +117,7 @@ class MainActivity : AppCompatActivity() {
                                         selected = selected,
                                         onClick = {
                                             navController.navigate(screen.route) {
-                                                popUpTo(navController.graph.id) {
+                                                popUpTo(navController.graph.findStartDestination().id) {
                                                     saveState = true
                                                 }
                                                 launchSingleTop = true
@@ -120,7 +127,7 @@ class MainActivity : AppCompatActivity() {
                                         colors = NavigationBarItemDefaults.colors(
                                             selectedIconColor = MaterialTheme.colorScheme.primary,
                                             selectedTextColor = MaterialTheme.colorScheme.primary,
-                                            indicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                                            indicatorColor = androidx.compose.ui.graphics.Color.Transparent, // Прозрачный индикатор как на скрине
                                             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                             unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -147,7 +154,10 @@ class MainActivity : AppCompatActivity() {
                                         onDateClick = { datePickerDialog.show() }
                                     )
                                 }
-                                composable(Screen.Stats.route) { TrendsScreen() }
+                                composable(Screen.Stats.route) { 
+                                    // TrendsScreen тоже должен быть прозрачным
+                                    TrendsScreen() 
+                                }
                                 composable(Screen.Profile.route) { SettingsScreen() }
                                 composable(recordVideoRoute) {
                                     val videoViewModel: VideoNotesViewModel = hiltViewModel()
