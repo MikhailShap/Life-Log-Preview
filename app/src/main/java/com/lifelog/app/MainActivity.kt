@@ -94,18 +94,15 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
 
-                // Используем AppBackground вместо простого Surface
                 AppBackground {
                     val navController = rememberNavController()
                     
                     Scaffold(
-                        // Делаем фон Scaffold прозрачным, чтобы видеть градиент
                         containerColor = Color.Transparent,
                         contentWindowInsets = WindowInsets(0, 0, 0, 0),
                         bottomBar = {
                             NavigationBar(
-                                // Делаем навбар полупрозрачным, чтобы он вписывался
-                                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                                containerColor = Color(0xFF1B1929).copy(alpha = 0.9f) // Согласовано с боковой панелью
                             ) {
                                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                                 val currentDestination = navBackStackEntry?.destination
@@ -125,11 +122,11 @@ class MainActivity : AppCompatActivity() {
                                             }
                                         },
                                         colors = NavigationBarItemDefaults.colors(
-                                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                                            indicatorColor = androidx.compose.ui.graphics.Color.Transparent, // Прозрачный индикатор как на скрине
-                                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                            selectedIconColor = Color.White,
+                                            selectedTextColor = Color.White,
+                                            indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                                            unselectedIconColor = Color.White.copy(alpha = 0.6f),
+                                            unselectedTextColor = Color.White.copy(alpha = 0.6f)
                                         )
                                     )
                                 }
@@ -155,7 +152,6 @@ class MainActivity : AppCompatActivity() {
                                     )
                                 }
                                 composable(Screen.Stats.route) { 
-                                    // TrendsScreen тоже должен быть прозрачным
                                     TrendsScreen() 
                                 }
                                 composable(Screen.Profile.route) { SettingsScreen() }

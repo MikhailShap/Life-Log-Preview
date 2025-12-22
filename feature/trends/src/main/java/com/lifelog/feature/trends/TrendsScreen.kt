@@ -23,8 +23,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.Mood
 import com.lifelog.core.domain.model.Sleep
 import com.lifelog.core.ui.R
+import com.lifelog.core.ui.components.ScreenHeader
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrendsScreen(
     viewModel: TrendsViewModel = hiltViewModel()
@@ -32,90 +32,83 @@ fun TrendsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
 
-    // Убрал Scaffold и фон MaterialTheme, чтобы был виден градиент
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .padding(16.dp)
-            .verticalScroll(scrollState),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        // Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(id = R.string.trends_title),
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            TimeRangeSelector(
-                selectedRange = uiState.timeRange,
-                onRangeSelected = { viewModel.setTimeRange(it) }
-            )
-        }
-
-        // Summary Section
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            SummaryCard(
-                title = stringResource(id = R.string.avg_mood),
-                value = uiState.averageMood,
-                modifier = Modifier.weight(1f)
-            )
-            SummaryCard(
-                title = stringResource(id = R.string.avg_sleep),
-                value = uiState.averageSleep,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Mood Chart
-        StatsCard(title = stringResource(id = R.string.mood_dynamics)) {
-            if (uiState.moodData.isNotEmpty()) {
-                MoodChart(data = uiState.moodData)
-            } else {
-                EmptyState(stringResource(id = R.string.no_mood_data))
-            }
-        }
-
-        // Sleep Chart
-        StatsCard(title = stringResource(id = R.string.sleep_duration_title)) {
-            if (uiState.sleepData.isNotEmpty()) {
-                SleepChart(data = uiState.sleepData)
-            } else {
-                EmptyState(stringResource(id = R.string.no_sleep_data))
-            }
-        }
-
-        // Energy Bar Chart
-        StatsCard(title = stringResource(id = R.string.energy_levels)) {
-            if (uiState.moodData.isNotEmpty()) {
-                BarChart(
-                    data = uiState.moodData.map { it.energy.toFloat() },
-                    color = Color(0xFFFFB74D), // Orange
-                    maxVal = 10f // Energy is 0-10
+    Column(modifier = Modifier.fillMaxSize()) {
+        ScreenHeader(
+            title = stringResource(id = R.string.trends_title),
+            actions = {
+                TimeRangeSelector(
+                    selectedRange = uiState.timeRange,
+                    onRangeSelected = { viewModel.setTimeRange(it) },
+                    modifier = Modifier.padding(end = 16.dp)
                 )
-            } else {
-                EmptyState(stringResource(id = R.string.no_energy_data))
+            }
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            // Summary Section
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                SummaryCard(
+                    title = stringResource(id = R.string.avg_mood),
+                    value = uiState.averageMood,
+                    modifier = Modifier.weight(1f)
+                )
+                SummaryCard(
+                    title = stringResource(id = R.string.avg_sleep),
+                    value = uiState.averageSleep,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            // Mood Chart
+            StatsCard(title = stringResource(id = R.string.mood_dynamics)) {
+                if (uiState.moodData.isNotEmpty()) {
+                    MoodChart(data = uiState.moodData)
+                } else {
+                    EmptyState(stringResource(id = R.string.no_mood_data))
+                }
+            }
+
+            // Sleep Chart
+            StatsCard(title = stringResource(id = R.string.sleep_duration_title)) {
+                if (uiState.sleepData.isNotEmpty()) {
+                    SleepChart(data = uiState.sleepData)
+                } else {
+                    EmptyState(stringResource(id = R.string.no_sleep_data))
+                }
+            }
+
+            // Energy Bar Chart
+            StatsCard(title = stringResource(id = R.string.energy_levels)) {
+                if (uiState.moodData.isNotEmpty()) {
+                    BarChart(
+                        data = uiState.moodData.map { it.energy.toFloat() },
+                        color = Color(0xFFFFB74D),
+                        maxVal = 10f
+                    )
+                } else {
+                    EmptyState(stringResource(id = R.string.no_energy_data))
+                }
             }
         }
     }
 }
 
-// ... Остальные функции остаются без изменений, но используем полупрозрачные карточки для стиля
 @Composable
 fun SummaryCard(title: String, value: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        // Полупрозрачный фон карточки для эффекта "стекла"
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -175,9 +168,10 @@ fun TimeRangeSelector(
 @Composable
 fun StatsCard(title: String, content: @Composable () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)), // Более прозрачные для графиков
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)),
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -210,7 +204,7 @@ fun MoodChart(data: List<Mood>) {
         val width = size.width
         val height = size.height
         val stepX = width / (data.size - 1).coerceAtLeast(1)
-        val maxVal = 5f // Mood 1-5
+        val maxVal = 5f 
 
         val points = data.mapIndexed { index, mood ->
             val x = index * stepX
@@ -252,7 +246,7 @@ fun MoodChart(data: List<Mood>) {
         drawPath(
             path = fillPath,
             brush = Brush.verticalGradient(
-                colors = listOf(primaryColor.copy(alpha = 0.5f), Color.Transparent) // Более насыщенный градиент для контраста с темным фоном
+                colors = listOf(primaryColor.copy(alpha = 0.5f), Color.Transparent)
             )
         )
     }

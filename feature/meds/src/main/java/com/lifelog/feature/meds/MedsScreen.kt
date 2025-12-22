@@ -13,12 +13,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.Med
 import com.lifelog.core.ui.R
+import com.lifelog.core.ui.components.ScreenHeader
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -42,45 +44,15 @@ fun MedsScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = R.string.meds_title),
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onMenuClick) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
-                ),
-                windowInsets = WindowInsets(0, 0, 0, 0),
-                modifier = Modifier.statusBarsPadding()
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_med))
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
-    ) { padding ->
+    Column(modifier = Modifier.fillMaxSize()) {
+        ScreenHeader(
+            title = stringResource(id = R.string.meds_title),
+            onMenuClick = onMenuClick
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
         ) {
             Text(
                 text = dateText.replaceFirstChar { it.uppercase() },
@@ -102,11 +74,7 @@ fun MedsScreen(
             }
             
             Button(
-                onClick = { 
-                    // TODO: Implement save log for specific date. Currently Meds are static list.
-                    // If we track daily intake, we need a separate entity MedLog(medId, date, status).
-                    // For now, this button is a placeholder or could save "I took all meds for today".
-                 },
+                onClick = { },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
@@ -134,9 +102,22 @@ fun MedsScreen(
             )
         }
     }
+    
+    // FAB for adding meds, overlaying the content
+    Box(modifier = Modifier.fillMaxSize()) {
+        FloatingActionButton(
+            onClick = { showDialog = true },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 88.dp, end = 16.dp) // Offset from nav bar
+        ) {
+            Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_med))
+        }
+    }
 }
 
-// ... MedCard and AddMedDialog remain same ...
 @Composable
 fun MedCard(med: Med, onDelete: () -> Unit) {
     var isChecked by remember { mutableStateOf(false) }
@@ -145,14 +126,21 @@ fun MedCard(med: Med, onDelete: () -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(2.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Checkbox(checked = isChecked, onCheckedChange = { isChecked = it })
+            Checkbox(
+                checked = isChecked, 
+                onCheckedChange = { isChecked = it },
+                colors = CheckboxDefaults.colors(
+                    checkedColor = MaterialTheme.colorScheme.primary,
+                    uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -185,6 +173,7 @@ fun AddMedDialog(onDismiss: () -> Unit, onConfirm: (Med) -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = { Text(stringResource(id = R.string.add_new_med), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column {

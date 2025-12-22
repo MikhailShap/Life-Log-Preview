@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.ui.R
+import com.lifelog.core.ui.components.ScreenHeader
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -57,30 +57,13 @@ fun LogScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-    ) {
-        // Header Row matching Drawer header height (56dp)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .padding(horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onMenuClick) {
-                Icon(Icons.Default.Menu, contentDescription = "Menu", tint = MaterialTheme.colorScheme.onBackground)
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = dateText.replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.clickable { onDateClick() } // Make date clickable
-            )
-        }
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Shared ScreenHeader
+        ScreenHeader(
+            title = dateText.replaceFirstChar { it.uppercase() },
+            onMenuClick = onMenuClick,
+            onTitleClick = onDateClick
+        )
 
         Column(
             modifier = Modifier
@@ -157,8 +140,8 @@ fun LogScreen(
                         .height(120.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
                         focusedBorderColor = Color.Transparent,
                         unfocusedBorderColor = Color.Transparent
                     )
@@ -169,7 +152,7 @@ fun LogScreen(
 
             // Save Button
             Button(
-                onClick = { viewModel.saveEntry(selectedDate) }, // Pass selected date
+                onClick = { viewModel.saveEntry(selectedDate) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
@@ -198,7 +181,7 @@ fun MoodItem(icon: ImageVector, label: String, isSelected: Boolean, onClick: () 
     )
 
     val containerColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surface,
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
         animationSpec = tween(durationMillis = 300),
         label = "containerColor"
     )
@@ -288,7 +271,7 @@ fun SliderGroup(label: String, value: Float, onValueChange: (Float) -> Unit) {
             colors = SliderDefaults.colors(
                 thumbColor = MaterialTheme.colorScheme.primary,
                 activeTrackColor = MaterialTheme.colorScheme.primary,
-                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
             )
         )
     }
