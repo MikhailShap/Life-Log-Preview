@@ -64,9 +64,9 @@ fun LogRootScreen(
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    Color(0xFF2E2A4A), // Глубокий фиолетовый сверху
-                                    Color(0xFF1B1929), // Переход
-                                    Color(0xFF121212)  // Почти черный снизу
+                                    Color(0xFF23203B), // Еще более темный фиолетовый сверху
+                                    Color(0xFF151321), // Темный переход
+                                    Color(0xFF0E0E0E)  // Почти черный снизу
                                 )
                             )
                         )

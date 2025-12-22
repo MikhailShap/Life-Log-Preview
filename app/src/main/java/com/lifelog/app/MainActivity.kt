@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
                         contentWindowInsets = WindowInsets(0, 0, 0, 0),
                         bottomBar = {
                             NavigationBar(
-                                containerColor = Color(0xFF1B1929).copy(alpha = 0.9f) // Согласовано с боковой панелью
+                                containerColor = Color(0xFF151321).copy(alpha = 0.95f) // Еще темнее, согласовано с боковой панелью
                             ) {
                                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                                 val currentDestination = navBackStackEntry?.destination
