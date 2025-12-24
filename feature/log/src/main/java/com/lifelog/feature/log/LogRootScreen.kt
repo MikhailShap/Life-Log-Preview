@@ -1,13 +1,16 @@
 package com.lifelog.feature.log
 
-import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -19,10 +22,7 @@ import com.lifelog.feature.today.TodayScreen
 import com.lifelog.feature.videonotes.VideoNotesScreen
 import kotlinx.coroutines.launch
 
-enum class LogSubScreen(
-    @StringRes val labelRes: Int,
-    val icon: ImageVector
-) {
+enum class LogSubScreen(val labelRes: Int, val icon: ImageVector) {
     MOOD(R.string.menu_mood, Icons.Default.SentimentSatisfied),
     SLEEP(R.string.menu_sleep, Icons.Default.Bedtime),
     MEDS(R.string.menu_meds, Icons.Default.Medication),
@@ -41,43 +41,88 @@ fun LogRootScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     
-    val currentScreen = try {
-        LogSubScreen.valueOf(currentSubScreenName)
-    } catch (e: Exception) {
-        LogSubScreen.MOOD
+    val currentScreen = remember(currentSubScreenName) {
+        try {
+            LogSubScreen.valueOf(currentSubScreenName)
+        } catch (e: Exception) {
+            LogSubScreen.MOOD
+        }
     }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                windowInsets = WindowInsets(0, 0, 0, 0)
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                drawerContainerColor = Color.Transparent, // Прозрачный, чтобы был виден градиент
+                drawerShape = RoundedCornerShape(topEnd = 0.dp, bottomEnd = 0.dp),
+                modifier = Modifier.width(280.dp).fillMaxHeight()
             ) {
-                Column(modifier = Modifier.statusBarsPadding()) {
-                    Box(
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFF23203B), // Еще более темный фиолетовый сверху
+                                    Color(0xFF151321), // Темный переход
+                                    Color(0xFF0E0E0E)  // Почти черный снизу
+                                )
+                            )
+                        )
+                ) {
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .padding(horizontal = 16.dp),
-                        contentAlignment = Alignment.CenterStart
+                            .fillMaxSize()
+                            .statusBarsPadding()
+                            .padding(horizontal = 12.dp, vertical = 24.dp)
                     ) {
                         Text(
-                            text = stringResource(id = R.string.app_name),
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                            text = "LifeLog",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            ),
+                            modifier = Modifier.padding(start = 16.dp, bottom = 32.dp)
                         )
-                    }
-                    HorizontalDivider()
-                    LogSubScreen.entries.forEach { screen ->
-                        NavigationDrawerItem(
-                            label = { Text(stringResource(screen.labelRes)) },
-                            icon = { Icon(screen.icon, contentDescription = null) },
-                            selected = currentScreen == screen,
-                            onClick = {
-                                onSubScreenChange(screen.name)
-                                scope.launch { drawerState.close() }
-                            },
-                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                        )
+                        
+                        LogSubScreen.values().forEach { screen ->
+                            val isSelected = currentScreen == screen
+                            NavigationDrawerItem(
+                                label = { 
+                                    Text(
+                                        stringResource(screen.labelRes),
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
+                                        )
+                                    ) 
+                                },
+                                icon = { 
+                                    Icon(
+                                        screen.icon, 
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp)
+                                    ) 
+                                },
+                                selected = isSelected,
+                                onClick = {
+                                    onSubScreenChange(screen.name)
+                                    scope.launch { drawerState.close() }
+                                },
+                                modifier = Modifier
+                                    .padding(vertical = 2.dp)
+                                    .height(56.dp),
+                                shape = RoundedCornerShape(28.dp),
+                                colors = NavigationDrawerItemDefaults.colors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                    unselectedContainerColor = Color.Transparent,
+                                    selectedIconColor = Color.White,
+                                    unselectedIconColor = Color.White.copy(alpha = 0.6f),
+                                    selectedTextColor = Color.White,
+                                    unselectedTextColor = Color.White.copy(alpha = 0.6f)
+                                )
+                            )
+                        }
                     }
                 }
             }

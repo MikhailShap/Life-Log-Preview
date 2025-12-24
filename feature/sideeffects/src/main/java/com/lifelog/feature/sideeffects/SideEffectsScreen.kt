@@ -13,12 +13,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.SideEffect
 import com.lifelog.core.ui.R
+import com.lifelog.core.ui.components.ScreenHeader
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -42,45 +44,15 @@ fun SideEffectsScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = R.string.side_effects_title),
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onMenuClick) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
-                ),
-                windowInsets = WindowInsets(0, 0, 0, 0),
-                modifier = Modifier.statusBarsPadding()
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_side_effect))
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
-    ) { padding ->
+    Column(modifier = Modifier.fillMaxSize()) {
+        ScreenHeader(
+            title = stringResource(id = R.string.side_effects_title),
+            onMenuClick = onMenuClick
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
         ) {
             Text(
                 text = dateText.replaceFirstChar { it.uppercase() },
@@ -95,7 +67,6 @@ fun SideEffectsScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(sideEffects) { sideEffect ->
-                    // TODO: Filter side effects by date if needed. Currently shows all history.
                     SideEffectCard(sideEffect = sideEffect, onDelete = {
                         viewModel.deleteSideEffect(sideEffect)
                     })
@@ -107,7 +78,6 @@ fun SideEffectsScreen(
             AddSideEffectDialog(
                 onDismiss = { showDialog = false },
                 onConfirm = {
-                    // Save with selected date
                     val effectWithDate = it.copy(date = selectedDate)
                     viewModel.addSideEffect(effectWithDate)
                     showDialog = false
@@ -115,25 +85,45 @@ fun SideEffectsScreen(
             )
         }
     }
+
+    // FAB for adding side effects
+    Box(modifier = Modifier.fillMaxSize()) {
+        FloatingActionButton(
+            onClick = { showDialog = true },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 88.dp, end = 16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_side_effect))
+        }
+    }
 }
 
-// ... SideEffectCard and AddSideEffectDialog remain same ...
 @Composable
 fun SideEffectCard(sideEffect: SideEffect, onDelete: () -> Unit) {
-    var isChecked by remember { mutableStateOf(true) } // Assume checked if added
+    var isChecked by remember { mutableStateOf(true) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(2.dp)
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Checkbox(checked = isChecked, onCheckedChange = { isChecked = it })
+            Checkbox(
+                checked = isChecked, 
+                onCheckedChange = { isChecked = it },
+                colors = CheckboxDefaults.colors(
+                    checkedColor = MaterialTheme.colorScheme.primary,
+                    uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -165,6 +155,7 @@ fun AddSideEffectDialog(onDismiss: () -> Unit, onConfirm: (SideEffect) -> Unit) 
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = { Text(stringResource(id = R.string.add_side_effect), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column {
@@ -199,7 +190,7 @@ fun AddSideEffectDialog(onDismiss: () -> Unit, onConfirm: (SideEffect) -> Unit) 
                         val newSideEffect = SideEffect(
                             name = name,
                             frequency = frequency,
-                            date = System.currentTimeMillis() // Placeholder, updated in parent
+                            date = System.currentTimeMillis()
                         )
                         onConfirm(newSideEffect)
                     }

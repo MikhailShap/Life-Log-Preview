@@ -23,8 +23,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.Mood
 import com.lifelog.core.domain.model.Sleep
 import com.lifelog.core.ui.R
+import com.lifelog.core.ui.components.ScreenHeader
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrendsScreen(
     viewModel: TrendsViewModel = hiltViewModel()
@@ -32,39 +32,23 @@ fun TrendsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = R.string.trends_title),
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                    )
-                },
-                actions = {
-                    TimeRangeSelector(
-                        selectedRange = uiState.timeRange,
-                        onRangeSelected = { viewModel.setTimeRange(it) },
-                        modifier = Modifier.padding(end = 16.dp)
-                    )
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
-                ),
-                windowInsets = WindowInsets(0, 0, 0, 0),
-                modifier = Modifier.statusBarsPadding()
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
-    ) { paddingValues ->
+    Column(modifier = Modifier.fillMaxSize()) {
+        ScreenHeader(
+            title = stringResource(id = R.string.trends_title),
+            actions = {
+                TimeRangeSelector(
+                    selectedRange = uiState.timeRange,
+                    onRangeSelected = { viewModel.setTimeRange(it) },
+                    modifier = Modifier.padding(end = 16.dp)
+                )
+            }
+        )
+
         Column(
             modifier = Modifier
-                .padding(paddingValues)
                 .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(horizontal = 16.dp),
+                .padding(16.dp)
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // Summary Section
@@ -107,8 +91,8 @@ fun TrendsScreen(
                 if (uiState.moodData.isNotEmpty()) {
                     BarChart(
                         data = uiState.moodData.map { it.energy.toFloat() },
-                        color = Color(0xFFFFB74D), // Orange
-                        maxVal = 10f // Energy is 0-10
+                        color = Color(0xFFFFB74D),
+                        maxVal = 10f
                     )
                 } else {
                     EmptyState(stringResource(id = R.string.no_energy_data))
@@ -122,8 +106,9 @@ fun TrendsScreen(
 fun SummaryCard(title: String, value: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(12.dp)
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -152,7 +137,7 @@ fun TimeRangeSelector(
 ) {
     Row(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
             .padding(4.dp)
     ) {
         TimeRange.values().forEach { range ->
@@ -183,9 +168,10 @@ fun TimeRangeSelector(
 @Composable
 fun StatsCard(title: String, content: @Composable () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)),
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -218,7 +204,7 @@ fun MoodChart(data: List<Mood>) {
         val width = size.width
         val height = size.height
         val stepX = width / (data.size - 1).coerceAtLeast(1)
-        val maxVal = 5f // Mood 1-5
+        val maxVal = 5f 
 
         val points = data.mapIndexed { index, mood ->
             val x = index * stepX
@@ -260,7 +246,7 @@ fun MoodChart(data: List<Mood>) {
         drawPath(
             path = fillPath,
             brush = Brush.verticalGradient(
-                colors = listOf(primaryColor.copy(alpha = 0.3f), Color.Transparent)
+                colors = listOf(primaryColor.copy(alpha = 0.5f), Color.Transparent)
             )
         )
     }

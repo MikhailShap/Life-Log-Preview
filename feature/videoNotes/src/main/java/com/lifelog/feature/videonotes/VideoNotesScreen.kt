@@ -1,7 +1,6 @@
 package com.lifelog.feature.videonotes
 
 import android.net.Uri
-import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,7 +11,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,6 +25,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.VideoNote
 import com.lifelog.core.ui.R
+import com.lifelog.core.ui.components.ScreenHeader
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -53,46 +52,15 @@ fun VideoNotesScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = R.string.menu_video_note),
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onMenuClick) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
-                ),
-                windowInsets = WindowInsets(0, 0, 0, 0),
-                modifier = Modifier.statusBarsPadding()
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToRecord,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = CircleShape
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Record New")
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
-    ) { padding ->
+    Column(modifier = Modifier.fillMaxSize()) {
+        ScreenHeader(
+            title = stringResource(id = R.string.menu_video_note),
+            onMenuClick = onMenuClick
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
         ) {
             val dateText = remember(selectedDate, Locale.getDefault()) {
                 try {
@@ -146,9 +114,23 @@ fun VideoNotesScreen(
             )
         }
     }
+    
+    // FAB position for video notes
+    Box(modifier = Modifier.fillMaxSize()) {
+        FloatingActionButton(
+            onClick = onNavigateToRecord,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 88.dp, end = 16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Record New")
+        }
+    }
 }
 
-// ... VideoNoteGridItem and VideoPlayerDialog remain same ...
 @Composable
 fun VideoNoteGridItem(note: VideoNote, onClick: () -> Unit) {
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -159,7 +141,8 @@ fun VideoNoteGridItem(note: VideoNote, onClick: () -> Unit) {
             .aspectRatio(0.8f) 
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Box(
@@ -204,7 +187,8 @@ fun VideoPlayerDialog(note: VideoNote, onDismiss: () -> Unit) {
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
+                .wrapContentHeight(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface) // Оставляем непрозрачным
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
