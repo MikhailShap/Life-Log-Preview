@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -321,7 +322,7 @@ private fun CalendarDay(
     Box(
         modifier = modifier
             .aspectRatio(1f)
-            .padding(2.dp)
+            .padding(4.dp)
             .scale(scale)
             .clip(CircleShape)
             .clickable(
@@ -332,16 +333,37 @@ private fun CalendarDay(
         contentAlignment = Alignment.Center
     ) {
         if (isSelected) {
+            // Soft glow background
             Box(
                 modifier = Modifier
-                    .fillMaxSize(0.8f)
+                    .fillMaxSize(1f)
                     .background(
                         Brush.radialGradient(
+                            colors = listOf(
+                                Color(0xFF9189DF).copy(alpha = 0.3f),
+                                Color.Transparent
+                            )
+                        ),
+                        CircleShape
+                    )
+            )
+            // Main selection circle
+            Box(
+                modifier = Modifier
+                    .fillMaxSize(0.85f)
+                    .background(
+                        Brush.verticalGradient(
                             colors = listOf(Color(0xFF5D52A5), Color(0xFF3F376F))
                         ),
                         CircleShape
                     )
-                    .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape)
+                    .border(
+                        width = 1.dp,
+                        brush = Brush.verticalGradient(
+                            listOf(Color.White.copy(alpha = 0.4f), Color.Transparent)
+                        ),
+                        shape = CircleShape
+                    )
             )
         }
 
