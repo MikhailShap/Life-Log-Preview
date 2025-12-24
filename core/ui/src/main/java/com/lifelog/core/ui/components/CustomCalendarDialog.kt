@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
@@ -19,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -63,22 +61,22 @@ fun CustomCalendarDialog(
             // Decorative background glows
             Box(
                 modifier = Modifier
-                    .size(400.dp)
-                    .offset(x = (-150).dp, y = (-100).dp)
+                    .size(450.dp)
+                    .offset(x = (-150).dp, y = (-120).dp)
                     .background(
                         Brush.radialGradient(
-                            colors = listOf(Color(0xFF3F376F).copy(alpha = 0.2f), Color.Transparent)
+                            colors = listOf(Color(0xFF3F376F).copy(alpha = 0.25f), Color.Transparent)
                         )
                     )
             )
             Box(
                 modifier = Modifier
-                    .size(300.dp)
+                    .size(350.dp)
                     .align(Alignment.BottomEnd)
-                    .offset(x = 100.dp, y = 50.dp)
+                    .offset(x = 120.dp, y = 70.dp)
                     .background(
                         Brush.radialGradient(
-                            colors = listOf(Color(0xFF9189DF).copy(alpha = 0.15f), Color.Transparent)
+                            colors = listOf(Color(0xFF9189DF).copy(alpha = 0.2f), Color.Transparent)
                         )
                     )
             )
@@ -95,12 +93,12 @@ fun CustomCalendarDialog(
                     onMonthChange = { currentMonth = it }
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(40.dp))
 
                 // Days of Week Header
                 DaysOfWeekHeader()
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 // Calendar Grid with Month Animation
                 AnimatedContent(
@@ -134,8 +132,8 @@ fun CustomCalendarDialog(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(64.dp)
-                            .clip(RoundedCornerShape(32.dp)),
+                            .height(68.dp)
+                            .clip(RoundedCornerShape(34.dp)),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.Transparent
                         ),
@@ -156,6 +154,7 @@ fun CustomCalendarDialog(
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 2.sp,
+                                    fontSize = 18.sp,
                                     color = Color.White
                                 )
                             )
@@ -170,7 +169,10 @@ fun CustomCalendarDialog(
                     Text(
                         "ОТМЕНА",
                         color = Color.White.copy(alpha = 0.4f),
-                        style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 1.sp)
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            letterSpacing = 1.sp,
+                            fontSize = 16.sp
+                        )
                     )
                 }
             }
@@ -184,7 +186,8 @@ private fun CalendarHeader(
     onMonthChange: (Calendar) -> Unit
 ) {
     val locale = Locale("ru")
-    val monthText = SimpleDateFormat("MMMM", locale).format(currentMonth.time).replaceFirstChar { it.uppercase() }
+    // Use "LLLL" for standalone month name in nominative case (e.g., "Декабрь")
+    val monthText = SimpleDateFormat("LLLL", locale).format(currentMonth.time).replaceFirstChar { it.uppercase() }
     val yearText = SimpleDateFormat("yyyy", locale).format(currentMonth.time)
 
     Row(
@@ -197,28 +200,32 @@ private fun CalendarHeader(
                 val next = currentMonth.clone() as Calendar
                 next.add(Calendar.MONTH, -1)
                 onMonthChange(next)
-            }
+            },
+            modifier = Modifier.size(56.dp)
         ) {
-            Icon(Icons.Default.KeyboardArrowLeft, contentDescription = null, tint = Color.White.copy(alpha = 0.6f))
+            Icon(
+                Icons.Default.KeyboardArrowLeft, 
+                contentDescription = null, 
+                tint = Color.White.copy(alpha = 0.6f),
+                modifier = Modifier.size(32.dp)
+            )
         }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = monthText,
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        fontSize = 26.sp
-                    )
+            Text(
+                text = monthText,
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontSize = 32.sp
                 )
-                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color.White.copy(alpha = 0.4f))
-            }
+            )
             Text(
                 text = yearText,
-                style = MaterialTheme.typography.bodySmall.copy(
+                style = MaterialTheme.typography.bodyMedium.copy(
                     color = Color.White.copy(alpha = 0.3f),
-                    letterSpacing = 4.sp
+                    letterSpacing = 6.sp,
+                    fontSize = 16.sp
                 )
             )
         }
@@ -228,9 +235,15 @@ private fun CalendarHeader(
                 val next = currentMonth.clone() as Calendar
                 next.add(Calendar.MONTH, 1)
                 onMonthChange(next)
-            }
+            },
+            modifier = Modifier.size(56.dp)
         ) {
-            Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.6f))
+            Icon(
+                Icons.Default.KeyboardArrowRight, 
+                contentDescription = null, 
+                tint = Color.White.copy(alpha = 0.6f),
+                modifier = Modifier.size(32.dp)
+            )
         }
     }
 }
@@ -248,9 +261,10 @@ private fun DaysOfWeekHeader() {
                 text = day,
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.labelSmall.copy(
+                style = MaterialTheme.typography.titleSmall.copy(
                     color = Color(0xFF9189DF).copy(alpha = 0.5f),
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
                 )
             )
         }
@@ -340,7 +354,7 @@ private fun CalendarDay(
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                Color(0xFF9189DF).copy(alpha = 0.3f),
+                                Color(0xFF9189DF).copy(alpha = 0.35f),
                                 Color.Transparent
                             )
                         ),
@@ -358,9 +372,9 @@ private fun CalendarDay(
                         CircleShape
                     )
                     .border(
-                        width = 1.dp,
+                        width = 1.5.dp,
                         brush = Brush.verticalGradient(
-                            listOf(Color.White.copy(alpha = 0.4f), Color.Transparent)
+                            listOf(Color.White.copy(alpha = 0.5f), Color.Transparent)
                         ),
                         shape = CircleShape
                     )
@@ -373,13 +387,13 @@ private fun CalendarDay(
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
                     color = contentColor,
-                    fontSize = 18.sp
+                    fontSize = 22.sp
                 )
             )
             if (isToday && !isSelected) {
                 Box(
                     modifier = Modifier
-                        .size(4.dp)
+                        .size(5.dp)
                         .background(Color(0xFF9189DF), CircleShape)
                 )
             }
