@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -15,11 +16,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -100,21 +101,47 @@ fun CustomCalendarDialog(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Calendar Grid with Month Animation
-                AnimatedContent(
-                    targetState = currentMonth,
-                    transitionSpec = {
-                        val direction = if (targetState.after(initialState)) 1 else -1
-                        (slideInHorizontally { width -> direction * width } + fadeIn(tween(300)))
-                            .togetherWith(slideOutHorizontally { width -> -direction * width } + fadeOut(tween(300)))
-                    },
-                    label = "month_anim"
-                ) { month ->
-                    CalendarGrid(
-                        currentMonth = month,
-                        selectedDate = selectedDate,
-                        onDateClick = { selectedDate = it }
-                    )
+                // Calendar Grid with Month Animation and Swipe handling
+                var dragAmount by remember { mutableStateOf(0f) }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pointerInput(currentMonth) {
+                            detectHorizontalDragGestures(
+                                onHorizontalDrag = { _, drag ->
+                                    dragAmount += drag
+                                },
+                                onDragEnd = {
+                                    if (dragAmount > 50) { // Swipe Right -> Previous Month
+                                        val prev = currentMonth.clone() as Calendar
+                                        prev.add(Calendar.MONTH, -1)
+                                        currentMonth = prev
+                                    } else if (dragAmount < -50) { // Swipe Left -> Next Month
+                                        val next = currentMonth.clone() as Calendar
+                                        next.add(Calendar.MONTH, 1)
+                                        currentMonth = next
+                                    }
+                                    dragAmount = 0f
+                                },
+                                onDragCancel = { dragAmount = 0f }
+                            )
+                        }
+                ) {
+                    AnimatedContent(
+                        targetState = currentMonth,
+                        transitionSpec = {
+                            val direction = if (targetState.after(initialState)) 1 else -1
+                            (slideInHorizontally { width -> direction * width } + fadeIn(tween(300)))
+                                .togetherWith(slideOutHorizontally { width -> -direction * width } + fadeOut(tween(300)))
+                        },
+                        label = "month_anim"
+                    ) { month ->
+                        CalendarGrid(
+                            currentMonth = month,
+                            selectedDate = selectedDate,
+                            onDateClick = { selectedDate = it }
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
