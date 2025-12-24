@@ -3,7 +3,6 @@ package com.lifelog.core.ui.components
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -186,7 +185,6 @@ private fun CalendarHeader(
     onMonthChange: (Calendar) -> Unit
 ) {
     val locale = Locale("ru")
-    // Use "LLLL" for standalone month name in nominative case (e.g., "Декабрь")
     val monthText = SimpleDateFormat("LLLL", locale).format(currentMonth.time).replaceFirstChar { it.uppercase() }
     val yearText = SimpleDateFormat("yyyy", locale).format(currentMonth.time)
 
@@ -354,29 +352,20 @@ private fun CalendarDay(
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                Color(0xFF9189DF).copy(alpha = 0.35f),
+                                Color(0xFF423B81).copy(alpha = 0.6f),
                                 Color.Transparent
                             )
                         ),
                         CircleShape
                     )
             )
-            // Main selection circle
+            // Main selection circle (darker, smoother)
             Box(
                 modifier = Modifier
-                    .fillMaxSize(0.85f)
+                    .fillMaxSize(0.95f) // Increased from 0.85f to 0.95f
                     .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color(0xFF5D52A5), Color(0xFF3F376F))
-                        ),
+                        Color(0xFF332D5A), // Solid dark purple
                         CircleShape
-                    )
-                    .border(
-                        width = 1.5.dp,
-                        brush = Brush.verticalGradient(
-                            listOf(Color.White.copy(alpha = 0.5f), Color.Transparent)
-                        ),
-                        shape = CircleShape
                     )
             )
         }
