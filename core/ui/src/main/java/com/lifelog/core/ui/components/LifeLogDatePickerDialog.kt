@@ -2,6 +2,7 @@ package com.lifelog.core.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -133,7 +134,8 @@ fun LifeLogDatePickerDialog(
                             .weight(1f)
                             .height(48.dp),
                         shape = RoundedCornerShape(12.dp),
-                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                        border = BorderStroke(
+                            width = 1.dp,
                             brush = Brush.linearGradient(
                                 colors = listOf(
                                     PrimaryPurple.copy(alpha = 0.5f),
