@@ -26,20 +26,16 @@ import androidx.navigation.compose.rememberNavController
 import com.lifelog.core.domain.model.ThemeMode
 import com.lifelog.core.ui.theme.LifeLogAppTheme
 import com.lifelog.core.ui.components.AppBackground
+import com.lifelog.core.ui.components.CustomCalendarDialog
 import com.lifelog.feature.log.LogRootScreen
 import com.lifelog.feature.settings.SettingsScreen
 import com.lifelog.feature.trends.TrendsScreen
 import dagger.hilt.android.AndroidEntryPoint
 import com.lifelog.core.ui.R
 import com.lifelog.feature.videonotes.RecordVideoScreen
-import com.lifelog.feature.videonotes.VideoNotesScreen
 import com.lifelog.feature.videonotes.VideoNotesViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import android.app.DatePickerDialog
-import android.widget.DatePicker
-import androidx.compose.ui.platform.LocalContext
-import java.util.Calendar
 
 sealed class Screen(val route: String, val labelRes: Int, val icon: ImageVector) {
     object Log : Screen("log", R.string.nav_log, Icons.Default.RadioButtonChecked)
@@ -77,20 +73,16 @@ class MainActivity : AppCompatActivity() {
 
             LifeLogAppTheme(darkTheme = darkTheme) {
                 var selectedDateInMillis by remember { mutableStateOf(System.currentTimeMillis()) }
-                val context = LocalContext.current
-                
-                val datePickerDialog = remember {
-                    val calendar = Calendar.getInstance()
-                    DatePickerDialog(
-                        context,
-                        { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-                            val newCalendar = Calendar.getInstance()
-                            newCalendar.set(year, month, dayOfMonth)
-                            selectedDateInMillis = newCalendar.timeInMillis
-                        },
-                        calendar.get(Calendar.YEAR),
-                        calendar.get(Calendar.MONTH),
-                        calendar.get(Calendar.DAY_OF_MONTH)
+                var showDatePicker by remember { mutableStateOf(false) }
+
+                if (showDatePicker) {
+                    CustomCalendarDialog(
+                        initialDate = selectedDateInMillis,
+                        onDismissRequest = { showDatePicker = false },
+                        onDateSelected = { date ->
+                            selectedDateInMillis = date
+                            showDatePicker = false
+                        }
                     )
                 }
 
@@ -102,7 +94,7 @@ class MainActivity : AppCompatActivity() {
                         contentWindowInsets = WindowInsets(0, 0, 0, 0),
                         bottomBar = {
                             NavigationBar(
-                                containerColor = Color(0xFF151321).copy(alpha = 0.95f) // Еще темнее, согласовано с боковой панелью
+                                containerColor = Color(0xFF151321).copy(alpha = 0.95f)
                             ) {
                                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                                 val currentDestination = navBackStackEntry?.destination
@@ -148,7 +140,7 @@ class MainActivity : AppCompatActivity() {
                                         onSubScreenChange = { viewModel.setLogSubScreen(it) },
                                         onNavigateToRecord = { navController.navigate(recordVideoRoute) },
                                         selectedDate = selectedDateInMillis,
-                                        onDateClick = { datePickerDialog.show() }
+                                        onDateClick = { showDatePicker = true }
                                     )
                                 }
                                 composable(Screen.Stats.route) { 
