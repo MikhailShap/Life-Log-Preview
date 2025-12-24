@@ -155,7 +155,7 @@ fun AddSideEffectDialog(onDismiss: () -> Unit, onConfirm: (SideEffect) -> Unit) 
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = Color(0xFF23202E),
         title = { Text(stringResource(id = R.string.add_side_effect), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column {

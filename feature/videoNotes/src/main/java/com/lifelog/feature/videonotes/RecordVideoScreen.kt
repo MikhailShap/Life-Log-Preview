@@ -150,12 +150,20 @@ fun RecordVideoScreen(
         return
     }
 
-    Scaffold(containerColor = Color.Transparent) { padding ->
+    Scaffold(
+        containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0.dp) // Disable default insets padding
+    ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
 
             // Circular Camera Preview or Player
             Box(
-                modifier = Modifier.align(Alignment.Center).size(350.dp).clip(CircleShape).background(Color.DarkGray)
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxWidth(0.85f)
+                    .aspectRatio(1f)
+                    .clip(CircleShape)
+                    .background(Color.DarkGray)
             ) {
                 if (previewUri == null) {
                     AndroidView(
@@ -241,7 +249,7 @@ fun RecordVideoScreen(
                             enabled = !isSwitchingCamera,
                             modifier = Modifier.align(Alignment.CenterEnd).padding(end = 48.dp)
                         ) {
-                            Box(modifier = Modifier.size(48.dp).background(Color.DarkGray.copy(alpha = 0.5f), CircleShape), contentAlignment = Alignment.Center) {
+                            Box(modifier = Modifier.size(48.dp).background(Color(0xFF2E2A4A), CircleShape), contentAlignment = Alignment.Center) {
                                 Icon(Icons.Default.FlipCameraAndroid, contentDescription = "Switch", tint = if (isSwitchingCamera) Color.Gray else Color.White)
                             }
                         }
@@ -252,7 +260,7 @@ fun RecordVideoScreen(
                                 onClick = onBack,
                                 modifier = Modifier.align(Alignment.CenterStart).padding(start = 48.dp)
                             ) {
-                                Box(modifier = Modifier.size(48.dp).background(Color.DarkGray.copy(alpha = 0.5f), CircleShape), contentAlignment = Alignment.Center) {
+                                Box(modifier = Modifier.size(48.dp).background(Color(0xFF2E2A4A), CircleShape), contentAlignment = Alignment.Center) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
                                         contentDescription = stringResource(id = R.string.back),
@@ -267,8 +275,8 @@ fun RecordVideoScreen(
                         Button(onClick = {
                             previewUri = null
                             recordedDuration = 0L
-                        }, colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)) {
-                            Text(stringResource(id = R.string.retake))
+                        }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E2A4A))) {
+                            Text(stringResource(id = R.string.retake), color = Color.White)
                         }
                         FloatingActionButton(onClick = {
                             previewUri?.let { viewModel.saveVideoNote(it, recordedDuration) }

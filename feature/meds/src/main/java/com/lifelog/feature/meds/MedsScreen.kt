@@ -173,7 +173,7 @@ fun AddMedDialog(onDismiss: () -> Unit, onConfirm: (Med) -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = Color(0xFF23202E),
         title = { Text(stringResource(id = R.string.add_new_med), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column {

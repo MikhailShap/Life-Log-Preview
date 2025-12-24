@@ -188,7 +188,7 @@ fun VideoPlayerDialog(note: VideoNote, onDismiss: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface) // Оставляем непрозрачным
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)) // Updated to match other cards
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,

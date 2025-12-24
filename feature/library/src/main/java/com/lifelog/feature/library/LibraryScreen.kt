@@ -4,10 +4,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -20,17 +22,35 @@ fun LibraryScreen() {
         Text(
             text = "Library",
             style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier.padding(bottom = 12.dp),
+            color = MaterialTheme.colorScheme.onBackground
         )
-        Card(modifier = Modifier.padding(bottom = 12.dp)) {
+        Card(
+            modifier = Modifier.padding(bottom = 12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E))
+        ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Surface 5–10 offline articles grouped by category.", style = MaterialTheme.typography.bodyMedium)
-                Text("Markdown content can be rendered to Compose text or HTML in the future.", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "Surface 5–10 offline articles grouped by category.", 
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    "Markdown content can be rendered to Compose text or HTML in the future.", 
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
-        Card {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E))
+        ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Use this area for saved resources and breathing guides.", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "Use this area for saved resources and breathing guides.", 
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }
