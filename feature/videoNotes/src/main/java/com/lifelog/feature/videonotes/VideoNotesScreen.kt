@@ -115,18 +115,20 @@ fun VideoNotesScreen(
         }
     }
     
-    // FAB position for video notes
-    Box(modifier = Modifier.fillMaxSize()) {
-        FloatingActionButton(
-            onClick = onNavigateToRecord,
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            shape = CircleShape,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = 88.dp, end = 16.dp)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Record New")
+    // FAB only shown when there are video notes
+    if (filteredNotes.isNotEmpty()) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            FloatingActionButton(
+                onClick = onNavigateToRecord,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = CircleShape,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 88.dp, end = 16.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Record New")
+            }
         }
     }
 }
