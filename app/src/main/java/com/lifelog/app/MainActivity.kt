@@ -36,10 +36,7 @@ import com.lifelog.feature.videonotes.VideoNotesScreen
 import com.lifelog.feature.videonotes.VideoNotesViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import android.app.DatePickerDialog
-import android.widget.DatePicker
-import androidx.compose.ui.platform.LocalContext
-import java.util.Calendar
+import com.lifelog.core.ui.components.LifeLogDatePickerDialog
 
 sealed class Screen(val route: String, val labelRes: Int, val icon: ImageVector) {
     object Log : Screen("log", R.string.nav_log, Icons.Default.RadioButtonChecked)
@@ -77,20 +74,16 @@ class MainActivity : AppCompatActivity() {
 
             LifeLogAppTheme(darkTheme = darkTheme) {
                 var selectedDateInMillis by remember { mutableStateOf(System.currentTimeMillis()) }
-                val context = LocalContext.current
-                
-                val datePickerDialog = remember {
-                    val calendar = Calendar.getInstance()
-                    DatePickerDialog(
-                        context,
-                        { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-                            val newCalendar = Calendar.getInstance()
-                            newCalendar.set(year, month, dayOfMonth)
-                            selectedDateInMillis = newCalendar.timeInMillis
+                var showDatePicker by remember { mutableStateOf(false) }
+
+                if (showDatePicker) {
+                    LifeLogDatePickerDialog(
+                        initialDate = selectedDateInMillis,
+                        onDateSelected = { dateMillis ->
+                            selectedDateInMillis = dateMillis
+                            showDatePicker = false
                         },
-                        calendar.get(Calendar.YEAR),
-                        calendar.get(Calendar.MONTH),
-                        calendar.get(Calendar.DAY_OF_MONTH)
+                        onDismiss = { showDatePicker = false }
                     )
                 }
 
@@ -148,7 +141,7 @@ class MainActivity : AppCompatActivity() {
                                         onSubScreenChange = { viewModel.setLogSubScreen(it) },
                                         onNavigateToRecord = { navController.navigate(recordVideoRoute) },
                                         selectedDate = selectedDateInMillis,
-                                        onDateClick = { datePickerDialog.show() }
+                                        onDateClick = { showDatePicker = true }
                                     )
                                 }
                                 composable(Screen.Stats.route) { 

@@ -89,6 +89,7 @@
     <string name="med_time">Время (напр. Утро)</string>
     <string name="add">Добавить</string>
     <string name="cancel">Отмена</string>
+    <string name="ok_button">OK</string>
     <string name="back">Назад</string>
 
     <!-- Side Effects Screen -->
