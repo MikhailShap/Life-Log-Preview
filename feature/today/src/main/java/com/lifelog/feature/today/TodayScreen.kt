@@ -115,7 +115,7 @@ fun TodayScreen(
             DateSelector(dateText = dateText, onClick = onDateClick)
 
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)), // Opaque dark purple-grey
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(0.dp)
             ) {
@@ -221,7 +221,7 @@ fun TodayScreen(
 @Composable
 fun DateSelector(dateText: String, onClick: () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)), // Opaque dark purple-grey
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(0.dp)

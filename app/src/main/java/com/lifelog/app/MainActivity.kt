@@ -161,6 +161,9 @@ class MainActivity : AppCompatActivity() {
                                         viewModel = videoViewModel,
                                         onVideoSaved = { 
                                             navController.popBackStack() 
+                                        },
+                                        onBack = {
+                                            navController.popBackStack()
                                         }
                                     )
                                 }

@@ -126,7 +126,7 @@ fun MedCard(med: Med, onDelete: () -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Row(

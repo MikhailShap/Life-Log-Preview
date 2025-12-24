@@ -55,7 +55,7 @@ fun SettingsScreen(
             )
             
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(0.dp)
             ) {
@@ -118,7 +118,7 @@ fun SettingsScreen(
             )
 
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(0.0.dp)
             ) {

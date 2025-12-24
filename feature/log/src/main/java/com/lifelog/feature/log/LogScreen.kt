@@ -140,8 +140,8 @@ fun LogScreen(
                         .height(120.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                        focusedContainerColor = Color(0xFF23202E), // Opaque dark purple-grey
+                        unfocusedContainerColor = Color(0xFF23202E),
                         focusedBorderColor = Color.Transparent,
                         unfocusedBorderColor = Color.Transparent
                     )

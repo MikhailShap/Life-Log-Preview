@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,7 +44,8 @@ import java.nio.ByteBuffer
 @Composable
 fun RecordVideoScreen(
     viewModel: VideoNotesViewModel,
-    onVideoSaved: () -> Unit
+    onVideoSaved: () -> Unit,
+    onBack: () -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -148,8 +150,9 @@ fun RecordVideoScreen(
         return
     }
 
-    Scaffold(containerColor = Color.Black) { padding ->
+    Scaffold(containerColor = Color.Transparent) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+
             // Circular Camera Preview or Player
             Box(
                 modifier = Modifier.align(Alignment.Center).size(350.dp).clip(CircleShape).background(Color.DarkGray)
@@ -186,12 +189,26 @@ fun RecordVideoScreen(
             // Controls
             Box(modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 64.dp)) {
                 if (previewUri == null && !isMerging) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Switch Camera - Now works during recording by creating segments
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        
+                        // Center: Record Button
+                        FloatingActionButton(
+                            onClick = {
+                                if (isRecording) {
+                                    currentRecording?.stop()
+                                } else {
+                                    startNewSegment()
+                                }
+                            },
+                            containerColor = if (isRecording) Color.Red else Color(0xFF9575CD),
+                            shape = CircleShape,
+                            modifier = Modifier.align(Alignment.Center).size(84.dp),
+                            elevation = FloatingActionButtonDefaults.elevation(0.dp)
+                        ) {
+                            Icon(if (isRecording) Icons.Default.Stop else Icons.Default.FiberManualRecord, null, modifier = Modifier.size(42.dp), tint = Color.White)
+                        }
+
+                        // Right: Switch Camera
                         IconButton(
                             onClick = {
                                 if (isRecording && !isSwitchingCamera) {
@@ -221,30 +238,29 @@ fun RecordVideoScreen(
                                         CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
                                 }
                             },
-                            enabled = !isSwitchingCamera
+                            enabled = !isSwitchingCamera,
+                            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 48.dp)
                         ) {
                             Box(modifier = Modifier.size(48.dp).background(Color.DarkGray.copy(alpha = 0.5f), CircleShape), contentAlignment = Alignment.Center) {
                                 Icon(Icons.Default.FlipCameraAndroid, contentDescription = "Switch", tint = if (isSwitchingCamera) Color.Gray else Color.White)
                             }
                         }
 
-                        FloatingActionButton(
-                            onClick = {
-                                if (isRecording) {
-                                    currentRecording?.stop()
-                                } else {
-                                    startNewSegment()
+                        // Left: Back Button (Only if not recording)
+                        if (!isRecording) {
+                            IconButton(
+                                onClick = onBack,
+                                modifier = Modifier.align(Alignment.CenterStart).padding(start = 48.dp)
+                            ) {
+                                Box(modifier = Modifier.size(48.dp).background(Color.DarkGray.copy(alpha = 0.5f), CircleShape), contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
+                                        contentDescription = stringResource(id = R.string.back),
+                                        tint = Color.White
+                                    )
                                 }
-                            },
-                            containerColor = if (isRecording) Color.Red else Color(0xFF9575CD),
-                            shape = CircleShape,
-                            modifier = Modifier.size(84.dp),
-                            elevation = FloatingActionButtonDefaults.elevation(0.dp)
-                        ) {
-                            Icon(if (isRecording) Icons.Default.Stop else Icons.Default.FiberManualRecord, null, modifier = Modifier.size(42.dp), tint = Color.White)
+                            }
                         }
-
-                        Spacer(Modifier.width(48.dp))
                     }
                 } else if (previewUri != null) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {

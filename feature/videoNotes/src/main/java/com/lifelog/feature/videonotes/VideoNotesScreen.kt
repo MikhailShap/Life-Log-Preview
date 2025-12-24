@@ -141,8 +141,7 @@ fun VideoNoteGridItem(note: VideoNote, onClick: () -> Unit) {
             .aspectRatio(0.8f) 
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        // Полупрозрачный фон карточки
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {

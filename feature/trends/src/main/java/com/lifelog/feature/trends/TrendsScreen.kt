@@ -106,7 +106,7 @@ fun TrendsScreen(
 fun SummaryCard(title: String, value: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
@@ -168,7 +168,7 @@ fun TimeRangeSelector(
 @Composable
 fun StatsCard(title: String, content: @Composable () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(0.dp)
