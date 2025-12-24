@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
@@ -336,7 +337,7 @@ private fun CalendarDay(
             .aspectRatio(1f)
             .padding(4.dp)
             .scale(scale)
-            .clip(CircleShape)
+            // REMOVED clip(CircleShape) from here to allow glow overflow
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -345,27 +346,33 @@ private fun CalendarDay(
         contentAlignment = Alignment.Center
     ) {
         if (isSelected) {
-            // Soft glow background
+            // Soft outer halo glow - now can overflow because parent is not clipped
             Box(
                 modifier = Modifier
-                    .fillMaxSize(1f)
+                    .fillMaxSize(2.0f) // Much larger to ensure visible glow
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                Color(0xFF423B81).copy(alpha = 0.6f),
+                                Color(0xFF6259A8).copy(alpha = 0.45f),
+                                Color(0xFF6259A8).copy(alpha = 0.1f),
                                 Color.Transparent
                             )
                         ),
                         CircleShape
                     )
             )
-            // Main selection circle (darker, smoother)
+            // Main selection circle
             Box(
                 modifier = Modifier
-                    .fillMaxSize(0.95f) // Increased from 0.85f to 0.95f
+                    .fillMaxSize(0.95f)
+                    .clip(CircleShape) // Clip only the inner circle
                     .background(
-                        Color(0xFF332D5A), // Solid dark purple
-                        CircleShape
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFF433887),
+                                Color(0xFF221E3B)
+                            )
+                        )
                     )
             )
         }
