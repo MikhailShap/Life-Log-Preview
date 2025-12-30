@@ -11,7 +11,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -108,7 +108,7 @@ fun ModernDatePicker(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.CalendarToday,
+                    imageVector = Icons.Default.CalendarMonth,
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(20.dp)
@@ -192,7 +192,7 @@ fun CompactDatePicker(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Icon(
-            imageVector = Icons.Default.CalendarToday,
+            imageVector = Icons.Default.CalendarMonth,
             contentDescription = null,
             tint = Color(0xFF8B83FF),
             modifier = Modifier.size(18.dp)
