@@ -4,7 +4,10 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -20,15 +23,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.roundToInt
 
 @Composable
 fun CustomCalendarDialog(
@@ -38,6 +45,11 @@ fun CustomCalendarDialog(
 ) {
     var currentMonth by remember { mutableStateOf(Calendar.getInstance().apply { timeInMillis = initialDate }) }
     var selectedDate by remember { mutableStateOf(Calendar.getInstance().apply { timeInMillis = initialDate }) }
+
+    // State for swipe-to-dismiss
+    var offsetY by remember { mutableStateOf(0f) }
+    val density = LocalDensity.current
+    val dismissThreshold = with(density) { 150.dp.toPx() }
 
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -58,6 +70,25 @@ fun CustomCalendarDialog(
                     )
                 )
                 .systemBarsPadding()
+                .draggable(
+                    orientation = Orientation.Vertical,
+                    state = rememberDraggableState { delta ->
+                        if (delta > 0 || offsetY > 0) {
+                            offsetY = (offsetY + delta).coerceAtLeast(0f)
+                        }
+                    },
+                    onDragStopped = {
+                        if (offsetY > dismissThreshold) {
+                            onDismissRequest()
+                        } else {
+                            offsetY = 0f
+                        }
+                    }
+                )
+                .graphicsLayer {
+                    translationY = offsetY
+                    alpha = (1f - (offsetY / (dismissThreshold * 2f))).coerceIn(0.5f, 1f)
+                }
         ) {
             // Decorative background glows
             Box(
@@ -88,6 +119,17 @@ fun CustomCalendarDialog(
                     .padding(horizontal = 24.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Drag Handle
+                Box(
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(4.dp)
+                        .background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(2.dp))
+                        .padding(bottom = 16.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 // Header: Month Year and Navigation
                 CalendarHeader(
                     currentMonth = currentMonth,
