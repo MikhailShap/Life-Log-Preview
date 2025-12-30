@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.SideEffect
 import com.lifelog.core.ui.R
@@ -46,25 +47,27 @@ fun SideEffectsScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(
-            title = stringResource(id = R.string.side_effects_title),
-            onMenuClick = onMenuClick
+            title = dateText.replaceFirstChar { it.uppercase() },
+            onMenuClick = onMenuClick,
+            onTitleClick = onDateClick
         )
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = dateText.replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clickable { onDateClick() }
+                text = stringResource(id = R.string.side_effects_title),
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold, fontSize = 32.sp),
+                color = MaterialTheme.colorScheme.onBackground
             )
+            Spacer(modifier = Modifier.height(16.dp))
             
             LazyColumn(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(sideEffects) { sideEffect ->
                     SideEffectCard(sideEffect = sideEffect, onDelete = {
@@ -105,9 +108,7 @@ fun SideEffectsScreen(
 fun SideEffectCard(sideEffect: SideEffect, onDelete: () -> Unit) {
     var isChecked by remember { mutableStateOf(true) }
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)),
         elevation = CardDefaults.cardElevation(0.dp)

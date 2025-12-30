@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.Mood
 import com.lifelog.core.domain.model.Sleep
@@ -47,10 +48,11 @@ fun TrendsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+            Spacer(modifier = Modifier.height(8.dp))
             // Summary Section
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -98,6 +100,8 @@ fun TrendsScreen(
                     EmptyState(stringResource(id = R.string.no_energy_data))
                 }
             }
+            
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
