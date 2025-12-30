@@ -20,10 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.Med
 import com.lifelog.core.ui.R
+import com.lifelog.core.ui.components.ModernDatePicker
 import com.lifelog.core.ui.components.ScreenHeader
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,14 +34,6 @@ fun MedsScreen(
     val meds by viewModel.meds.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
-    val dateText = remember(selectedDate, Locale.getDefault()) {
-        try {
-            SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date(selectedDate))
-        } catch (e: Exception) {
-            ""
-        }
-    }
-
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(
             title = stringResource(id = R.string.meds_title),
@@ -54,13 +44,11 @@ fun MedsScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            Text(
-                text = dateText.replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clickable { onDateClick() }
+            // Modern date picker
+            ModernDatePicker(
+                selectedDate = selectedDate,
+                onClick = onDateClick,
+                modifier = Modifier.padding(16.dp)
             )
             
             LazyColumn(

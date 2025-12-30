@@ -25,6 +25,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.VideoNote
 import com.lifelog.core.ui.R
+import com.lifelog.core.ui.components.ModernDatePicker
 import com.lifelog.core.ui.components.ScreenHeader
 import java.io.File
 import java.text.SimpleDateFormat
@@ -62,21 +63,11 @@ fun VideoNotesScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            val dateText = remember(selectedDate, Locale.getDefault()) {
-                try {
-                    SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date(selectedDate))
-                } catch (e: Exception) {
-                    ""
-                }
-            }
-
-            Text(
-                text = dateText.replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clickable { onDateClick() }
+            // Modern date picker
+            ModernDatePicker(
+                selectedDate = selectedDate,
+                onClick = onDateClick,
+                modifier = Modifier.padding(16.dp)
             )
 
             if (filteredNotes.isEmpty()) {

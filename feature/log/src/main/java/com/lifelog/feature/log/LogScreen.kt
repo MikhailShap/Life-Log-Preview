@@ -32,10 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.ui.R
+import com.lifelog.core.ui.components.ModernDatePicker
 import com.lifelog.core.ui.components.ScreenHeader
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
@@ -48,21 +46,12 @@ fun LogScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
-    
-    val dateText = remember(selectedDate, Locale.getDefault()) {
-        try {
-            SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date(selectedDate))
-        } catch (e: Exception) {
-            ""
-        }
-    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Shared ScreenHeader
         ScreenHeader(
-            title = dateText.replaceFirstChar { it.uppercase() },
-            onMenuClick = onMenuClick,
-            onTitleClick = onDateClick
+            title = stringResource(id = R.string.mood_title),
+            onMenuClick = onMenuClick
         )
 
         Column(
@@ -72,10 +61,10 @@ fun LogScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Text(
-                text = stringResource(id = R.string.mood_title),
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold, fontSize = 32.sp),
-                color = MaterialTheme.colorScheme.onBackground
+            // Modern date picker
+            ModernDatePicker(
+                selectedDate = selectedDate,
+                onClick = onDateClick
             )
 
             // Mood Section

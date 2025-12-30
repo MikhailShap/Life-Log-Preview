@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.ui.R
+import com.lifelog.core.ui.components.ModernDatePicker
 import com.lifelog.core.ui.components.ScreenHeader
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -49,14 +50,6 @@ fun TodayScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
     val context = LocalContext.current
-    
-    val dateText = remember(selectedDate, Locale.getDefault()) {
-        try {
-            SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date(selectedDate))
-        } catch (e: Exception) {
-            ""
-        }
-    }
 
     val startTimeCalendar = Calendar.getInstance().apply { timeInMillis = uiState.sleepStartTime }
     val endTimeCalendar = Calendar.getInstance().apply { timeInMillis = uiState.sleepEndTime }
@@ -112,7 +105,11 @@ fun TodayScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            DateSelector(dateText = dateText, onClick = onDateClick)
+            // Modern date picker
+            ModernDatePicker(
+                selectedDate = selectedDate,
+                onClick = onDateClick
+            )
 
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)), // Opaque dark purple-grey
@@ -214,52 +211,6 @@ fun TodayScreen(
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun DateSelector(dateText: String, onClick: () -> Unit) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)), // Opaque dark purple-grey
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                     Icon(
-                        Icons.Default.CalendarToday,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-               
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = dateText.replaceFirstChar { it.uppercase() },
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            Icon(
-                Icons.Default.ExpandMore,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
