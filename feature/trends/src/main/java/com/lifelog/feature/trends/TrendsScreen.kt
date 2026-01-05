@@ -36,6 +36,7 @@ fun TrendsScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(
             title = stringResource(id = R.string.trends_title),
+            isDateSelector = false,
             actions = {
                 TimeRangeSelector(
                     selectedRange = uiState.timeRange,

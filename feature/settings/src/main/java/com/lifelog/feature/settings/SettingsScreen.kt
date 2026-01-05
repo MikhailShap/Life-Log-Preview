@@ -33,7 +33,8 @@ fun SettingsScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(
-            title = stringResource(id = R.string.nav_profile)
+            title = stringResource(id = R.string.nav_profile),
+            isDateSelector = false
         )
 
         Column(

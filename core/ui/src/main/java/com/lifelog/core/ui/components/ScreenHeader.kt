@@ -23,6 +23,7 @@ fun ScreenHeader(
     title: String,
     onMenuClick: (() -> Unit)? = null,
     onTitleClick: (() -> Unit)? = null,
+    isDateSelector: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     Row(
@@ -51,51 +52,64 @@ fun ScreenHeader(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Modern Date Selector Button
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(48.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(Color.White.copy(alpha = 0.05f))
-                .then(
-                    if (onTitleClick != null) {
-                        Modifier.clickable { onTitleClick() }
-                    } else Modifier
-                )
-                .padding(horizontal = 16.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = null,
-                    tint = Color(0xFF9189DF),
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
-                        letterSpacing = 0.5.sp
-                    ),
-                    color = Color.White
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                if (onTitleClick != null) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.3f),
-                        modifier = Modifier.size(20.dp)
+        if (isDateSelector) {
+            // Modern Date Selector Button
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color.White.copy(alpha = 0.05f))
+                    .then(
+                        if (onTitleClick != null) {
+                            Modifier.clickable { onTitleClick() }
+                        } else Modifier
                     )
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = null,
+                        tint = Color(0xFF9189DF),
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp,
+                            letterSpacing = 0.5.sp
+                        ),
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (onTitleClick != null) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.3f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
+        } else {
+            // Simple Title
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp
+                ),
+                color = Color.White,
+                modifier = Modifier.weight(1f)
+            )
         }
 
         Row(
