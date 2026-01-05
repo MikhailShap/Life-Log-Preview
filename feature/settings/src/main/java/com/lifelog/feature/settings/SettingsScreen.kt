@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,7 +33,8 @@ fun SettingsScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(
-            title = stringResource(id = R.string.nav_profile)
+            title = stringResource(id = R.string.nav_profile),
+            isDateSelector = false
         )
 
         Column(

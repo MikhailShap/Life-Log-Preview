@@ -72,6 +72,7 @@ fun LogScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(id = R.string.mood_title),
                 style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold, fontSize = 32.sp),

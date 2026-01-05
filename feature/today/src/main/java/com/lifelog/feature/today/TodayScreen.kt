@@ -19,17 +19,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.ui.R
 import com.lifelog.core.ui.components.ScreenHeader
@@ -101,8 +98,9 @@ fun TodayScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(
-            title = stringResource(id = R.string.sleep_log_title),
-            onMenuClick = onMenuClick
+            title = dateText.replaceFirstChar { it.uppercase() },
+            onMenuClick = onMenuClick,
+            onTitleClick = onDateClick
         )
 
         Column(
@@ -112,7 +110,11 @@ fun TodayScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            DateSelector(dateText = dateText, onClick = onDateClick)
+            Text(
+                text = stringResource(id = R.string.sleep_log_title),
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold, fontSize = 32.sp),
+                color = MaterialTheme.colorScheme.onBackground
+            )
 
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)), // Opaque dark purple-grey
@@ -202,7 +204,8 @@ fun TodayScreen(
                 onClick = { viewModel.saveEntry(selectedDate) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(56.dp)
+                    .padding(bottom = 16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -214,52 +217,6 @@ fun TodayScreen(
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun DateSelector(dateText: String, onClick: () -> Unit) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)), // Opaque dark purple-grey
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                     Icon(
-                        Icons.Default.CalendarToday,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-               
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = dateText.replaceFirstChar { it.uppercase() },
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            Icon(
-                Icons.Default.ExpandMore,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }

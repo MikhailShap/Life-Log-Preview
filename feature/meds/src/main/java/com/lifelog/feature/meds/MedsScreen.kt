@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.Med
 import com.lifelog.core.ui.R
@@ -46,25 +47,28 @@ fun MedsScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(
-            title = stringResource(id = R.string.meds_title),
-            onMenuClick = onMenuClick
+            title = dateText.replaceFirstChar { it.uppercase() },
+            onMenuClick = onMenuClick,
+            onTitleClick = onDateClick
         )
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = dateText.replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clickable { onDateClick() }
+                text = stringResource(id = R.string.meds_title),
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold, fontSize = 32.sp),
+                color = MaterialTheme.colorScheme.onBackground
             )
+            Spacer(modifier = Modifier.height(16.dp))
             
             LazyColumn(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(meds) { med ->
                     MedCard(med = med, onDelete = {
@@ -77,7 +81,7 @@ fun MedsScreen(
                 onClick = { },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(bottom = 16.dp)
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -103,7 +107,7 @@ fun MedsScreen(
         }
     }
     
-    // FAB for adding meds, overlaying the content
+    // FAB for adding meds
     Box(modifier = Modifier.fillMaxSize()) {
         FloatingActionButton(
             onClick = { showDialog = true },
@@ -111,7 +115,7 @@ fun MedsScreen(
             contentColor = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 88.dp, end = 16.dp) // Offset from nav bar
+                .padding(bottom = 88.dp, end = 16.dp)
         ) {
             Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_med))
         }
@@ -122,9 +126,7 @@ fun MedsScreen(
 fun MedCard(med: Med, onDelete: () -> Unit) {
     var isChecked by remember { mutableStateOf(false) }
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)),
         elevation = CardDefaults.cardElevation(0.dp)

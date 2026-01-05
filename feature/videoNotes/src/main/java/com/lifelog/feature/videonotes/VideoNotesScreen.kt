@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lifelog.core.domain.model.VideoNote
@@ -52,32 +53,33 @@ fun VideoNotesScreen(
         }
     }
 
+    val dateText = remember(selectedDate, Locale.getDefault()) {
+        try {
+            SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date(selectedDate))
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(
-            title = stringResource(id = R.string.menu_video_note),
-            onMenuClick = onMenuClick
+            title = dateText.replaceFirstChar { it.uppercase() },
+            onMenuClick = onMenuClick,
+            onTitleClick = onDateClick
         )
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            val dateText = remember(selectedDate, Locale.getDefault()) {
-                try {
-                    SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date(selectedDate))
-                } catch (e: Exception) {
-                    ""
-                }
-            }
-
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = dateText.replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clickable { onDateClick() }
+                text = stringResource(id = R.string.menu_video_note),
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold, fontSize = 32.sp),
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
+            Spacer(modifier = Modifier.height(16.dp))
 
             if (filteredNotes.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -188,7 +190,7 @@ fun VideoPlayerDialog(note: VideoNote, onDismiss: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E)) // Updated to match other cards
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF23202E))
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
